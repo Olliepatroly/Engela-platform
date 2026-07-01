@@ -1,0 +1,99 @@
+/*
+ * Design tokens — single source of truth for the Engela Health CLINICAL PLATFORM.
+ * Values taken directly from the demo design system (README + brief §10).
+ * This is a DIFFERENT brand from the marketing site (which stays teal/french-blue).
+ * All component CSS must reference these variables; no hard-coded hex or magic numbers.
+ *
+ * Status rule (load-bearing, do not remove): colour is NEVER used alone — every
+ * status pairs a colour with a dot AND a text/word label. Colour is chosen by
+ * DIRECTION OF CLINICAL BENEFIT, not raw sign.
+ */
+
+:root {
+  /* ── Core brand ─────────────────────────────────────────────────── */
+  --c-slate: #2e5077;        /* Slate Blue — primary. Console chrome, lines, charts. */
+  --c-amber: #ffa630;        /* Amber — the ONE action colour. Buttons, rings, progress, upward movement. */
+  --c-navy: #001a38;         /* Deep Navy — ink and dark surfaces (roster rail, score card). */
+  --c-cream: #fdfbf7;        /* Cream — app/page background. */
+
+  /* ── Status (identical logic on both surfaces, different loudness) ── */
+  --c-ontrack: #2e7d5b;      /* On track green — pill text/dot */
+  --c-ontrack-bg: #e3f1ea;   /* On track surface tint */
+  --c-watch: #a86a12;        /* Watch amber — text-on-light (accessible on cream) */
+  --c-watch-surface: #fcebd2;/* Watch surface */
+  --c-flag: #c44536;         /* Flag red — CONSULTANT-ONLY alert. NEVER on the client app. */
+  --c-flag-bg: #fbeae7;      /* Flag surface */
+
+  /* ── Tints & quiet surfaces ─────────────────────────────────────── */
+  --c-blue-tint: #d6e4f0;    /* Chart fills/bands, quiet surfaces, selected states */
+  --c-amber-tint: #fff4e0;   /* Pillar group header rows, soft highlight/focus panels */
+  --c-flag-dot: #ff7a66;     /* Small red-orange roster dot for flagged patients */
+  --c-page-wash: #e8e2d6;    /* Outer canvas only (around device/browser frames), not app chrome */
+
+  /* ── Neutrals ───────────────────────────────────────────────────── */
+  --c-surface: #ffffff;
+  --c-ink: var(--c-navy);
+  --c-text-secondary: #52617a;   /* secondary text */
+  --c-text-tertiary: #8a93a0;    /* tertiary / labels */
+  --c-text-action: #33414f;      /* action item text */
+  /* Translucent Slate hairline — use instead of flat grey for quiet dividers on cream/white */
+  --c-line: rgba(46, 80, 119, 0.14);
+
+  /* ── Semantic aliases ───────────────────────────────────────────── */
+  --c-bg: var(--c-cream);
+  --c-primary: var(--c-slate);
+  --c-accent: var(--c-amber);
+  --c-focus: var(--c-slate);
+
+  /* ── Spacing scale (4px base) ───────────────────────────────────── */
+  --space-1: 0.25rem;   /*   4px */
+  --space-2: 0.5rem;    /*   8px */
+  --space-3: 0.75rem;   /*  12px */
+  --space-4: 1rem;      /*  16px */
+  --space-6: 1.5rem;    /*  24px */
+  --space-8: 2rem;      /*  32px */
+  --space-12: 3rem;     /*  48px */
+  --space-16: 4rem;     /*  64px */
+  --space-24: 6rem;     /*  96px */
+  --space-32: 8rem;     /* 128px */
+
+  /* ── Typography ─────────────────────────────────────────────────── */
+  /* Set by next/font CSS variables on <html> in layout.tsx */
+  /* Fraunces = display/headings/scores; Hanken Grotesk = body/interface/ALL numbers in tables */
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body: var(--font-hanken), system-ui, sans-serif;
+
+  --text-display: clamp(2rem, 5vw, 2.75rem);
+  --text-h1: clamp(1.6rem, 4vw, 2rem);
+  --text-h2: 1.375rem;
+  --text-h3: 1.125rem;
+  --text-body: 1rem;         /* 16px */
+  --text-small: 0.875rem;    /* 14px */
+  --text-label: 0.65625rem;  /* 10.5px — uppercase micro labels (status strip, pills) */
+
+  --leading-display: 1.05;
+  --leading-h1: 1.1;
+  --leading-h2: 1.2;
+  --leading-body: 1.55;
+  --leading-small: 1.5;
+
+  /* ── Radii (dashboard = tighter; client app = softer/larger) ────── */
+  --radius-pill: 999px;      /* status pills, fully rounded */
+  --radius-roster: 0.6875rem;/* 11px — roster rows */
+  --radius-card: 0.8125rem;  /* 13px — dashboard cards */
+  --radius-client: 1.125rem; /* 18px — client app cards (softer) */
+  --radius-client-lg: 1.5rem;/* 24px — larger client app cards */
+
+  /* ── Shadows ────────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 12px 0 rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 8px 24px 0 rgb(0 0 0 / 0.1);
+
+  /* ── Z-index scale ──────────────────────────────────────────────── */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+}

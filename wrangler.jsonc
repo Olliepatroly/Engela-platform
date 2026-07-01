@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "engela-platform",
+  "main": ".open-next/worker.js",
+  // Node.js compatibility is required for OpenNext — do not remove.
+  "compatibility_date": "2025-06-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Deployments are triggered from GitHub Actions (see .github/workflows/).
+  // Never connect this repo to Cloudflare Workers Builds directly.
+  "env": {
+    "preview": {
+      // PR preview deployments land here; URL: engela-platform-preview.<account>.workers.dev
+      "name": "engela-platform-preview"
+    }
+  }
+}

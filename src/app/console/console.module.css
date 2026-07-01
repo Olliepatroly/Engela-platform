@@ -1,0 +1,30 @@
+.main {
+  min-height: 100dvh;
+  background-color: var(--c-cream);
+  padding: var(--space-16) var(--space-6);
+}
+
+.inner {
+  max-width: 40rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.eyebrow {
+  font-size: var(--text-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-slate);
+  font-weight: 700;
+}
+
+.heading {
+  font-size: var(--text-display);
+  line-height: var(--leading-display);
+}
+
+.note {
+  color: var(--c-text-secondary);
+}
