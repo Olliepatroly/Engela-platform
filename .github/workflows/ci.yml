@@ -41,7 +41,7 @@ jobs:
         # Build-only check; actual deploys are in deploy.yml
         run: pnpm exec opennextjs-cloudflare build
         env:
-          NEXT_PUBLIC_SITE_URL: https://app.engelahealth.co.uk
+          NEXT_PUBLIC_SITE_URL: https://engelahealth.com
           NEXT_PUBLIC_MARKETING_URL: https://engelahealth.co.uk
           NEXT_PUBLIC_ENVIRONMENT: preview
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}

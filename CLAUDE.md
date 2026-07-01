@@ -2,7 +2,7 @@
 
 > **Read this file first, in full, at the start of every session.** It is your persistent memory
 > and operating manual. This project is the **clinical platform** (consultant console + client app
-> + role-aware sign-in) at **app.engelahealth.co.uk**. The public marketing site is a **separate
+> + role-aware sign-in) at **engelahealth.com**. The public marketing site is a **separate
 > project** (`../engela-health`, engelahealth.co.uk) and is not touched from here.
 
 ---
@@ -109,8 +109,9 @@ consent are core requirements, not polish. When unsure, choose the safer, more p
 
 ## 6. DECISIONS LOG (keep current)
 
-- `2026-07-01` — Platform built as a **separate project** from the marketing site (own repo, app
-  subdomain). Marketing stays on its teal brand; this app uses the demo's clinical brand
+- `2026-07-01` — Platform built as a **separate project** from the marketing site (own repo, own
+  domain **engelahealth.com** — a distinct TLD Oliver owns, apex used for the app). Marketing stays
+  on engelahealth.co.uk with its teal brand; this app uses the demo's clinical brand
   (Slate `#2E5077` / Amber `#FFA630` / Navy `#001A38` / Cream `#FDFBF7`, Fraunces + Hanken).
 - `2026-07-01` — Stack kept as **CSS Modules + Cloudflare Workers** (not the brief's Tailwind/Vercel).
 - `2026-07-01` — **Separate Supabase project**, EU/London, for clinical special-category data

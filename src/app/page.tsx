@@ -2,7 +2,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 
 /**
- * App landing (app.engelahealth.co.uk root).
+ * App landing (engelahealth.com root).
  * The marketing site lives on the separate engelahealth.co.uk domain; this
  * surface is just the entry point into the authenticated platform.
  */

@@ -2,6 +2,16 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-01 — Domain set to engelahealth.com
+
+**What:** Pointed the platform at **engelahealth.com** (apex) instead of a subdomain of the
+marketing domain. Oliver owns `engelahealth.com` as a distinct TLD; it is dedicated to the platform.
+Updated `NEXT_PUBLIC_SITE_URL` (env, env.ts, CI, deploy), `RESEND_FROM_EMAIL` → `team@engelahealth.com`,
+and docs. `NEXT_PUBLIC_MARKETING_URL` still points at `engelahealth.co.uk` (the separate marketing site).
+
+**DNS implication:** add `engelahealth.com` as a Cloudflare zone and attach the apex to the Worker;
+add Resend SPF/DKIM records to that zone before Phase 2 invites. See `docs/SETUP.md`.
+
 ## 2026-07-01 — Phase 0: project scaffold
 
 **What:** Stood up the `engela-platform` project (consultant console + client app + role-aware
@@ -27,4 +37,4 @@ console read-only + client home).
 
 **Migration/secret/DNS implications:** Requires Oliver to provision (see `docs/SETUP.md`): a new
 Supabase project (EU/London), a GitHub repo, Cloudflare account/token secrets, and the
-`app.engelahealth.co.uk` DNS record. No secrets committed.
+`engelahealth.com` DNS/zone. No secrets committed.

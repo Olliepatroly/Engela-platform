@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const isProduction = process.env.NEXT_PUBLIC_ENVIRONMENT === "production";
 
 /*
- * Security headers for the clinical platform (app.engelahealth.co.uk).
+ * Security headers for the clinical platform (engelahealth.com).
  * This is an authenticated app holding special-category health data, so it is
  * NEVER indexed — the noindex header is applied on every route in every
  * environment, not just previews. Full CSP is hardened in Phase 2.

@@ -43,8 +43,13 @@ RLS can read it as `app_metadata.role`. (Wired with the invite flow in Phase 2; 
 
 ## 5. Domain
 
-Point **app.engelahealth.co.uk** at the Cloudflare Worker (custom domain / route). The marketing
-apex `engelahealth.co.uk` is unchanged.
+Point **engelahealth.com** at the Cloudflare Worker (custom domain / route). This is a separate TLD
+you own, dedicated to the platform; add it as a Cloudflare zone and attach the apex (and optionally
+`www`) to the Worker. The marketing domain `engelahealth.co.uk` is unchanged.
+
+**Email note:** invites (Phase 2) send from `team@engelahealth.com`, so before Phase 2 add SPF +
+DKIM (Resend) records to the `engelahealth.com` zone so mail passes SPF/DKIM/DMARC. (The marketing
+Workspace on `engelahealth.co.uk` is separate and unaffected.)
 
 ## 6. Fonts
 

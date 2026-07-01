@@ -1,7 +1,7 @@
 # Engela Health — Clinical Platform
 
 The authenticated product behind the Engela Health sign-in: a **consultant console** (desktop) and
-a **client app** (phone-first), on a Supabase backend. Lives at **app.engelahealth.co.uk**.
+a **client app** (phone-first), on a Supabase backend. Lives at **engelahealth.com**.
 
 The public marketing site is a **separate project** (`../engela-health`, engelahealth.co.uk).
 

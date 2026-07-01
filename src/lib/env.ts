@@ -13,7 +13,7 @@ const opt = z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).op
 
 const schema = z.object({
   // Site
-  NEXT_PUBLIC_SITE_URL: z.string().url().default("https://app.engelahealth.co.uk"),
+  NEXT_PUBLIC_SITE_URL: z.string().url().default("https://engelahealth.com"),
   NEXT_PUBLIC_MARKETING_URL: z.string().url().default("https://engelahealth.co.uk"),
   NEXT_PUBLIC_ENVIRONMENT: z.enum(["production", "preview", "development"]).default("development"),
 
@@ -25,7 +25,7 @@ const schema = z.object({
 
   // Resend — transactional email for invites (tighten to required in Phase 2).
   RESEND_API_KEY: opt,
-  RESEND_FROM_EMAIL: z.string().email().default("team@engelahealth.co.uk"),
+  RESEND_FROM_EMAIL: z.string().email().default("team@engelahealth.com"),
 });
 
 // Cloudflare Workers secrets are injected at runtime, not during `next build`.
