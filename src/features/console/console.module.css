@@ -1,0 +1,484 @@
+/* Consultant console — desktop-first. Navy roster rail, cream working canvas. */
+
+.shell {
+  display: grid;
+  grid-template-columns: 18rem 1fr;
+  min-height: 100dvh;
+  background-color: var(--c-cream);
+}
+
+/* ── Roster rail ──────────────────────────────────────────────────── */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--space-4);
+  background-color: var(--c-navy);
+  color: var(--c-cream);
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+}
+
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+}
+
+.wordmarkSerif {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: var(--c-amber);
+}
+
+.wordmarkSans {
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  color: var(--c-cream);
+}
+
+.railHeading {
+  padding: 0 var(--space-2);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(253, 251, 247, 0.55);
+}
+
+.rosterList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rosterRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-roster);
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid transparent;
+  transition: background-color 120ms ease;
+}
+
+.rosterRow:hover {
+  background-color: rgba(253, 251, 247, 0.06);
+}
+
+.rosterRowSelected {
+  background-color: rgba(253, 251, 247, 0.1);
+  border-color: rgba(255, 166, 48, 0.5);
+}
+
+.rosterName {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  font-size: var(--text-small);
+}
+
+.flagDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--c-flag-dot);
+  flex-shrink: 0;
+}
+
+.rosterMeta {
+  font-size: var(--text-label);
+  letter-spacing: 0.04em;
+  color: rgba(253, 251, 247, 0.55);
+}
+
+.rosterNoReview {
+  font-size: var(--text-label);
+  color: rgba(253, 251, 247, 0.45);
+}
+
+.railFooter {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2) 0;
+  border-top: 1px solid rgba(253, 251, 247, 0.14);
+}
+
+.viewer {
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+.signOut {
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-cream);
+  background: none;
+  border: 1px solid rgba(253, 251, 247, 0.35);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.signOut:hover {
+  border-color: var(--c-amber);
+  color: var(--c-amber);
+}
+
+/* ── Main column ──────────────────────────────────────────────────── */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  max-width: 64rem;
+  width: 100%;
+}
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.patientName {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  line-height: var(--leading-h1);
+  color: var(--c-ink);
+}
+
+.patientMeta {
+  margin-top: var(--space-1);
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+/* Status strip — clinical context band (holds the disease marker). */
+.statusStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.stripItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 8rem;
+}
+
+.stripLabel {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+}
+
+.stripValue {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+/* Composite + pillar score row */
+.scoreRow {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.scoreCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-6);
+  background-color: var(--c-navy);
+  color: var(--c-cream);
+  border-radius: var(--radius-card);
+}
+
+.scoreValue {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--c-amber);
+}
+
+.scoreLabel {
+  font-size: var(--text-small);
+  font-weight: 700;
+}
+
+.scoreCaption {
+  font-size: var(--text-label);
+  color: rgba(253, 251, 247, 0.6);
+}
+
+.pillarScoreCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.pillarScoreValue {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--c-slate);
+}
+
+/* Ring/score threshold from the demo: amber below 8.0, slate at or above. */
+.pillarScoreAmber {
+  color: var(--c-watch);
+}
+
+.pillarScoreLabel {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.pillarScoreBaseline {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+}
+
+/* ── Pillar metric tables ─────────────────────────────────────────── */
+
+.pillarSection {
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.pillarHeader {
+  padding: var(--space-3) var(--space-6);
+  background-color: var(--c-amber-tint);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.pillarTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.metricTable {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricRow {
+  display: grid;
+  grid-template-columns: 1.6fr auto 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.metricRow:last-child {
+  border-bottom: none;
+}
+
+.metricName {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.estimateChip {
+  align-self: flex-start;
+  padding: 0.0625rem var(--space-2);
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--c-text-secondary);
+  background-color: var(--c-blue-tint);
+  border-radius: var(--radius-pill);
+}
+
+.metricTarget {
+  font-size: var(--text-label);
+  font-weight: 400;
+  color: var(--c-text-tertiary);
+}
+
+.metricSpark {
+  display: flex;
+  align-items: center;
+}
+
+.metricNumbers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  text-align: right;
+}
+
+.metricCurrent {
+  font-size: var(--text-h3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink);
+}
+
+.metricPrev {
+  font-size: var(--text-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-tertiary);
+}
+
+.metricStatus {
+  justify-self: end;
+}
+
+/* ── Actions & flags ──────────────────────────────────────────────── */
+
+.actionsPanel,
+.signOff {
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.actionsTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+  margin-bottom: var(--space-4);
+}
+
+.actionsList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.actionItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--c-line);
+  border-left: 3px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+/* Flag styling is CONSULTANT-ONLY: red never reaches the client surface. */
+.actionFlag {
+  border-left-color: var(--c-flag);
+  background-color: var(--c-flag-bg);
+}
+
+.actionTags {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sharedChip,
+.clinicalChip {
+  padding: 0.0625rem var(--space-2);
+  font-size: var(--text-label);
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+}
+
+.sharedChip {
+  color: var(--c-ontrack);
+  background-color: var(--c-ontrack-bg);
+}
+
+.clinicalChip {
+  color: var(--c-text-secondary);
+  background-color: var(--c-blue-tint);
+}
+
+.actionText {
+  font-size: var(--text-small);
+  color: var(--c-text-action);
+  line-height: var(--leading-small);
+}
+
+.signOffText {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.disclaimer {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+  text-align: center;
+}
+
+/* ── Empty state ──────────────────────────────────────────────────── */
+
+.empty {
+  margin: auto;
+  max-width: 24rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.emptyHeading {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--c-ink);
+}
+
+.emptyNote {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+@media (max-width: 56rem) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .rail {
+    position: static;
+    height: auto;
+  }
+
+  .scoreRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}

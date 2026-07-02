@@ -1,27 +1,28 @@
 import type { Metadata } from "next";
-import styles from "./app.module.css";
+import { ClientHomeView, getClientHome } from "@/features/client-home";
 
 export const metadata: Metadata = {
   title: "This week",
 };
 
+// Supabase reads are per-request (cookie-scoped RLS) — never prerender.
+export const dynamic = "force-dynamic";
+
 /**
- * Client app (clients only) — the calm, phone-first surface.
- * Middleware gates this route by role. Phase 1 builds the "calm hero" home:
- * composite score, three pillars and this week's gentle focus. It NEVER shows a
- * raw lab value, disease marker or red flag — those stay on the console.
+ * Client app home (clients only) — the calm, phone-first surface. All data
+ * comes from the client-safe projection: it NEVER shows a raw lab value, a
+ * disease marker or a red flag — those stay on the console.
  */
-export default function ClientAppPage() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.inner}>
-        <p className={styles.greeting}>This week</p>
-        <h1 className={styles.heading}>Your progress</h1>
-        <p className={styles.note}>
-          The client home is built in Phase 1 (composite score, three pillars, this week&rsquo;s
-          gentle focus). Calm by design.
-        </p>
-      </div>
-    </main>
-  );
+export default async function ClientAppPage() {
+  const home = await getClientHome();
+
+  if (!home) {
+    return (
+      <main style={{ padding: "3rem 1.5rem", textAlign: "center" }}>
+        <p>Your programme is being set up. Check back soon, or contact your rehab lead.</p>
+      </main>
+    );
+  }
+
+  return <ClientHomeView home={home} />;
 }

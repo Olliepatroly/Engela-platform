@@ -1,27 +1,36 @@
 import type { Metadata } from "next";
-import styles from "./console.module.css";
+import { ConsoleView, getLatestReview, getRoster } from "@/features/console";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Clinical Console",
 };
 
+// Supabase reads are per-request (cookie-scoped RLS) — never prerender.
+export const dynamic = "force-dynamic";
+
 /**
- * Consultant console (clinical team only).
- * Middleware gates this route by role. Phase 1 builds the real console:
- * roster rail, patient banner, status strip, 12-week trend table, pillar
- * scores, actions/flags and the audited sign-off, rendered from seed data.
+ * Consultant console (clinical team only; middleware gates the route, RLS
+ * scopes the data to the signed-in clinician's care team). Renders the roster
+ * and the selected patient's latest weekly review.
  */
-export default function ConsolePage() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.inner}>
-        <p className={styles.eyebrow}>Clinical Console</p>
-        <h1 className={styles.heading}>Weekly review</h1>
-        <p className={styles.note}>
-          The console is built in Phase 1 (roster, trend table, pillar scores, audited sign-off),
-          rendered from the seed patient HCA-MM-0142.
-        </p>
-      </div>
-    </main>
-  );
+export default async function ConsolePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ patient?: string }>;
+}) {
+  const { patient } = await searchParams;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const viewerName =
+    (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "Clinical team";
+
+  const roster = await getRoster();
+  const selectedId = patient ?? roster[0]?.clientId;
+  const review = selectedId ? await getLatestReview(selectedId) : null;
+
+  return <ConsoleView roster={roster} review={review} viewerName={viewerName} />;
 }

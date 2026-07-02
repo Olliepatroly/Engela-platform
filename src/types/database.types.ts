@@ -457,6 +457,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      client_home_payload: { Args: never; Returns: Json }
       current_client_id: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_clinical: { Args: never; Returns: boolean }

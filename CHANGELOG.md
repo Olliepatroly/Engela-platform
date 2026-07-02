@@ -2,6 +2,39 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-02 — Phase 1: functional sign-in, consultant console, client home, demo data
+
+**What:**
+- **Sign-in** (`src/features/auth/`): email/password via Supabase Auth with a shared Zod schema,
+  server action sets the session and routes by the role claim (clinical → /console, client → /app).
+- **Consultant console** (`src/features/console/`): navy roster rail (care-team scoped by RLS),
+  patient banner, clinical status strip (diagnosis, phase, MRD, QOL, sessions), composite + pillar
+  score cards (amber below 8.0), per-pillar metric tables with 12-week SVG sparklines, targets,
+  estimate chips and colour+dot+text status pills, actions/flags panel (flags styled red,
+  consultant-only; actions tagged "Shared with client" or "Clinical team only"), read-only
+  sign-off block (audited sign-off is Phase 2).
+- **Client home** (`src/features/client-home/`): phone-first calm hero with composite ring, three
+  pillar cards vs baseline, "This week's focus" (client-visible actions only), "Your numbers"
+  (client-labelled metrics only, estimate caveats, flag softened to amber "This week's focus" —
+  red never reaches the client surface). Data comes exclusively from a new SECURITY DEFINER
+  projection `client_home_payload()` (migration `0005`); clients still have no direct SELECT on
+  review tables.
+- **Demo data + accounts** (`supabase/seed_demo.sql`): worked example Michael Mercer
+  (HCA-MM-0142, week 32, composite 8.0, sleep flag + raised CRP) with 12 readings and histories,
+  labs panel, actions; three roster patients; demo sign-ins for consultant (Dr Emily Hartley),
+  CEP (Daniel Ross, on one care team only — demonstrates least disclosure) and client.
+- Shared UI (`src/components/ui/`): StatusPill (never colour alone) and Sparkline.
+
+**Verified:** all three demo accounts signed in live against the real database; CEP roster
+correctly limited to one patient; client REST probes against weekly_reviews, labs and another
+client's record all refused by RLS (the Phase 1 gate); client page render contains no MRD, CRP,
+neutrophil, diagnosis or flag content.
+
+**Migration/secret/DNS implication:** migration `0005_client_home_payload.sql` applied to the live
+DB. Demo accounts share password EngelaDemo2026! — rotate or delete before any real client data.
+Domain attach to the Worker still pending removal of two Namecheap parking DNS records (A @ apex,
+CNAME www) in the engelahealth.com zone.
+
 ## 2026-07-02 — Backend wired up: GitHub, Cloudflare, Supabase live
 
 **What:**
