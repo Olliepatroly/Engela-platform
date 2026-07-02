@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { StatusPill, Sparkline } from "@/components/ui";
-import { signOut } from "@/features/auth";
+import { Sidebar } from "./Sidebar";
+import { AddDataPanel, type MetricOption } from "./AddDataPanel";
+import { ReportsPanel } from "./ReportsPanel";
 import type { ReviewVM, RosterEntry } from "./data";
 import styles from "./console.module.css";
 
@@ -36,60 +37,22 @@ export function ConsoleView({
   roster,
   review,
   viewerName,
+  metricOptions,
 }: {
   roster: RosterEntry[];
   review: ReviewVM | null;
   viewerName: string;
+  metricOptions: MetricOption[];
 }) {
   return (
     <div className={styles.shell}>
-      {/* ── Roster rail ─────────────────────────────────────────────── */}
-      <aside className={styles.rail}>
-        <p className={styles.wordmark}>
-          <span className={styles.wordmarkSerif}>Engela</span>
-          <span className={styles.wordmarkSans}>HEALTH</span>
-        </p>
-        <p className={styles.railHeading}>This week</p>
-        <nav className={styles.rosterList} aria-label="Patients">
-          {roster.map((entry) => {
-            const selected = entry.clientId === review?.patient.clientId;
-            return (
-              <Link
-                key={entry.clientId}
-                href={`/console?patient=${entry.clientId}`}
-                className={`${styles.rosterRow} ${selected ? styles.rosterRowSelected : ""}`}
-                aria-current={selected ? "page" : undefined}
-              >
-                <span className={styles.rosterName}>
-                  {entry.reviewStatus === "flag" ? (
-                    <span className={styles.flagDot} aria-label="Flagged" />
-                  ) : null}
-                  {entry.fullName}
-                </span>
-                <span className={styles.rosterMeta}>
-                  {entry.mrn}
-                  {entry.week != null ? ` · Week ${entry.week}` : ""}
-                </span>
-                {entry.reviewStatus ? (
-                  <StatusPill status={entry.reviewStatus} />
-                ) : (
-                  <span className={styles.rosterNoReview}>No review yet</span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className={styles.railFooter}>
-          <p className={styles.viewer}>{viewerName}</p>
-          <form action={signOut}>
-            <button className={styles.signOut} type="submit">
-              Sign out
-            </button>
-          </form>
-        </div>
-      </aside>
+      <Sidebar
+        roster={roster}
+        viewerName={viewerName}
+        selectedId={review?.patient.clientId}
+        activeNav="review"
+      />
 
-      {/* ── Main review ─────────────────────────────────────────────── */}
       <main className={styles.main}>
         {review == null ? (
           <div className={styles.empty}>
@@ -160,6 +123,11 @@ export function ConsoleView({
                   <h2 className={styles.pillarTitle}>{pillar.label}</h2>
                 </header>
                 <div className={styles.metricTable} role="table" aria-label={`${pillar.label} metrics`}>
+                  {pillar.metrics.length === 0 ? (
+                    <p className={styles.noMetrics}>
+                      No readings recorded yet. Use Add data below after a session or a test.
+                    </p>
+                  ) : null}
                   {pillar.metrics.map((metric) => (
                     <div key={metric.code} className={styles.metricRow} role="row">
                       <div className={styles.metricName} role="cell">
@@ -192,6 +160,9 @@ export function ConsoleView({
 
             <section className={styles.actionsPanel} aria-label="Actions and flags">
               <h2 className={styles.actionsTitle}>Actions and flags</h2>
+              {review.actions.length === 0 ? (
+                <p className={styles.noMetrics}>No actions this week.</p>
+              ) : null}
               <ul className={styles.actionsList}>
                 {review.actions.map((action) => (
                   <li
@@ -211,6 +182,10 @@ export function ConsoleView({
                 ))}
               </ul>
             </section>
+
+            <AddDataPanel clientId={review.patient.clientId} metricOptions={metricOptions} />
+
+            <ReportsPanel />
 
             <section className={styles.signOff} aria-label="Sign-off">
               <h2 className={styles.actionsTitle}>Sign-off</h2>

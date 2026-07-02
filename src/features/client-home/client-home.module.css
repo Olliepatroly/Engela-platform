@@ -37,6 +37,28 @@
   color: var(--c-slate);
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.accountLink {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-slate);
+  text-decoration: none;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+}
+
+.accountLink:hover {
+  border-color: var(--c-slate);
+}
+
 .signOut {
   padding: var(--space-1) var(--space-3);
   font-family: var(--font-body);

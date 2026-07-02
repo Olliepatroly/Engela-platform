@@ -1,3 +1,4 @@
 export { ConsoleView } from "./ConsoleView";
-export { getRoster, getLatestReview } from "./data";
+export { Sidebar } from "./Sidebar";
+export { getRoster, getLatestReview, getMetricOptions } from "./data";
 export type { RosterEntry, ReviewVM } from "./data";

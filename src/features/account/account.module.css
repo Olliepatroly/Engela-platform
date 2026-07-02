@@ -1,0 +1,228 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 40rem;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  line-height: var(--leading-h1);
+  color: var(--c-ink);
+}
+
+.subhead {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.emailRow {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.emailValue {
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.formTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.formNote {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--c-ink);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--c-focus);
+  box-shadow: 0 0 0 3px var(--c-blue-tint);
+}
+
+.error {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-flag);
+  background-color: var(--c-flag-bg);
+  border-radius: var(--radius-roster);
+}
+
+.success {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-ontrack);
+  background-color: var(--c-ontrack-bg);
+  border-radius: var(--radius-roster);
+}
+
+.submit {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-navy);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* ── Care team consent ────────────────────────────────────────────── */
+
+.teamList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.teamRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+.teamInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.teamName {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.teamMeta {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+}
+
+.consentOn {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--c-ontrack);
+}
+
+.consentOff {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--c-text-tertiary);
+}
+
+.grantBtn,
+.withdrawBtn {
+  padding: var(--space-1) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.grantBtn {
+  color: var(--c-navy);
+  background-color: var(--c-amber);
+  border: none;
+}
+
+.withdrawBtn {
+  color: var(--c-text-secondary);
+  background: none;
+  border: 1px solid var(--c-line);
+}
+
+.withdrawBtn:hover {
+  color: var(--c-flag);
+  border-color: var(--c-flag);
+}
+
+.grantBtn:disabled,
+.withdrawBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* Client account page shell (phone-first, matches the client app) */
+
+.clientMain {
+  max-width: 27rem;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--space-4) var(--space-12);
+  background-color: var(--c-cream);
+}
+
+.clientHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.backLink {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-slate);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}

@@ -1,143 +1,10 @@
-/* Consultant console — desktop-first. Navy roster rail, cream working canvas. */
+/* Consultant console — desktop-first. Collapsible navy nav rail (see
+   sidebar.module.css), cream working canvas. */
 
 .shell {
-  display: grid;
-  grid-template-columns: 18rem 1fr;
+  display: flex;
   min-height: 100dvh;
   background-color: var(--c-cream);
-}
-
-/* ── Roster rail ──────────────────────────────────────────────────── */
-
-.rail {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  padding: var(--space-6) var(--space-4);
-  background-color: var(--c-navy);
-  color: var(--c-cream);
-  position: sticky;
-  top: 0;
-  height: 100dvh;
-  overflow-y: auto;
-}
-
-.wordmark {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding: 0 var(--space-2);
-}
-
-.wordmarkSerif {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.25rem;
-  color: var(--c-amber);
-}
-
-.wordmarkSans {
-  font-weight: 700;
-  font-size: 0.6875rem;
-  letter-spacing: 0.18em;
-  color: var(--c-cream);
-}
-
-.railHeading {
-  padding: 0 var(--space-2);
-  font-size: var(--text-label);
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(253, 251, 247, 0.55);
-}
-
-.rosterList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.rosterRow {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-3);
-  border-radius: var(--radius-roster);
-  text-decoration: none;
-  color: inherit;
-  border: 1px solid transparent;
-  transition: background-color 120ms ease;
-}
-
-.rosterRow:hover {
-  background-color: rgba(253, 251, 247, 0.06);
-}
-
-.rosterRowSelected {
-  background-color: rgba(253, 251, 247, 0.1);
-  border-color: rgba(255, 166, 48, 0.5);
-}
-
-.rosterName {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-weight: 600;
-  font-size: var(--text-small);
-}
-
-.flagDot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background-color: var(--c-flag-dot);
-  flex-shrink: 0;
-}
-
-.rosterMeta {
-  font-size: var(--text-label);
-  letter-spacing: 0.04em;
-  color: rgba(253, 251, 247, 0.55);
-}
-
-.rosterNoReview {
-  font-size: var(--text-label);
-  color: rgba(253, 251, 247, 0.45);
-}
-
-.railFooter {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-2) 0;
-  border-top: 1px solid rgba(253, 251, 247, 0.14);
-}
-
-.viewer {
-  font-size: var(--text-small);
-  font-weight: 600;
-}
-
-.signOut {
-  align-self: flex-start;
-  padding: var(--space-1) var(--space-3);
-  font-family: var(--font-body);
-  font-size: var(--text-label);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--c-cream);
-  background: none;
-  border: 1px solid rgba(253, 251, 247, 0.35);
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-}
-
-.signOut:hover {
-  border-color: var(--c-amber);
-  color: var(--c-amber);
 }
 
 /* ── Main column ──────────────────────────────────────────────────── */
@@ -294,6 +161,12 @@
 .metricTable {
   display: flex;
   flex-direction: column;
+}
+
+.noMetrics {
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-small);
+  color: var(--c-text-tertiary);
 }
 
 .metricRow {
@@ -470,12 +343,7 @@
 
 @media (max-width: 56rem) {
   .shell {
-    grid-template-columns: 1fr;
-  }
-
-  .rail {
-    position: static;
-    height: auto;
+    flex-direction: column;
   }
 
   .scoreRow {

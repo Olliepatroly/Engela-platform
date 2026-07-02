@@ -2,6 +2,37 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-02 — Interactive demo: data entry, consent, collapsible nav, accounts
+
+**What:**
+- **Collapsible sidebar** (`src/features/console/Sidebar.tsx`): the console's roster rail is now a
+  permanent left navigation (Weekly review, My account, roster, sign out) that collapses to a slim
+  rail of initials; the choice persists per browser.
+- **Clinician data entry** (`entry-actions.ts`, `AddDataPanel.tsx`): consultants and CEPs record
+  metric readings (status computed against the catalog target, history appended, previous/delta
+  maintained) and add actions or safety flags. A safety flag is forced non-client-visible in the
+  server action. Authorisation is the caller's own RLS view of the client (care team + consent);
+  writes use the service role and every entry is appended to audit_log.
+- **Reports foundation** (`ReportsPanel.tsx`): PDF picker above Sign-off, explicitly non-functional
+  (no storage, nothing leaves the browser) until a later phase.
+- **Account editor** (`src/features/account/`): /console/account and /app/account. Everyone edits
+  name and password; clinicians edit discipline/registration. Name changes propagate to the auth
+  metadata copy and are audited.
+- **Client consent manager**: clients see their care team and grant/withdraw consent per
+  clinician. Enforced in the database: `is_on_care_team()` now requires `consent_at` (migration
+  `0006`), so withdrawal removes the clinician's access everywhere, immediately. Clients read
+  their team via a narrow `my_care_team()` SECURITY DEFINER helper (migration `0007`).
+- All four demo patients can now sign in (shared demo password).
+
+**Verified live against the real DB:** consultant recorded a grip-strength reading for Beatrice
+Cole (status computed "watch") and raised a safety flag (forced clinical-only); both audit_log
+entries present; the reading appeared in Beatrice's client app softened to "Worth watching";
+Beatrice withdrew consent for the consultant and the consultant's REST view of her record went
+empty, then restored on re-grant; account edits persisted and were reverted.
+
+**Migration/secret implication:** migrations `0006`, `0007` applied. `SUPABASE_SERVICE_ROLE_KEY`
+uploaded as a Cloudflare Worker secret (server actions need it at runtime).
+
 ## 2026-07-02 — Phase 1: functional sign-in, consultant console, client home, demo data
 
 **What:**

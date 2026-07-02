@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { StatusPill } from "@/components/ui";
 import { signOut } from "@/features/auth";
 import type { ClientHomeVM } from "./data";
@@ -41,11 +42,16 @@ export function ClientHomeView({ home }: { home: ClientHomeVM }) {
           <span className={styles.wordmarkSerif}>Engela</span>
           <span className={styles.wordmarkSans}>HEALTH</span>
         </p>
-        <form action={signOut}>
-          <button className={styles.signOut} type="submit">
-            Sign out
-          </button>
-        </form>
+        <div className={styles.headerActions}>
+          <Link className={styles.accountLink} href="/app/account">
+            Account
+          </Link>
+          <form action={signOut}>
+            <button className={styles.signOut} type="submit">
+              Sign out
+            </button>
+          </form>
+        </div>
       </header>
 
       <section className={styles.hero}>

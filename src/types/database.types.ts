@@ -459,6 +459,7 @@ export type Database = {
     Functions: {
       client_home_payload: { Args: never; Returns: Json }
       current_client_id: { Args: never; Returns: string }
+      my_care_team: { Args: never; Returns: Json }
       is_admin: { Args: never; Returns: boolean }
       is_clinical: { Args: never; Returns: boolean }
       is_on_care_team: { Args: { p_client: string }; Returns: boolean }

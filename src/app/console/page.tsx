@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ConsoleView, getLatestReview, getRoster } from "@/features/console";
+import { ConsoleView, getLatestReview, getMetricOptions, getRoster } from "@/features/console";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -30,7 +30,17 @@ export default async function ConsolePage({
 
   const roster = await getRoster();
   const selectedId = patient ?? roster[0]?.clientId;
-  const review = selectedId ? await getLatestReview(selectedId) : null;
+  const [review, metricOptions] = await Promise.all([
+    selectedId ? getLatestReview(selectedId) : Promise.resolve(null),
+    getMetricOptions(),
+  ]);
 
-  return <ConsoleView roster={roster} review={review} viewerName={viewerName} />;
+  return (
+    <ConsoleView
+      roster={roster}
+      review={review}
+      viewerName={viewerName}
+      metricOptions={metricOptions}
+    />
+  );
 }

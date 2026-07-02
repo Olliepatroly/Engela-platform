@@ -118,6 +118,19 @@ function targetText(targetDef: unknown): string {
   return "";
 }
 
+/** Metric options for the Add data form, in catalog display order. */
+export async function getMetricOptions(): Promise<
+  { code: string; name: string; unit: string | null }[]
+> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("metrics_catalog").select("code, name, unit");
+  return (data ?? []).sort(
+    (a, b) =>
+      METRIC_ORDER.indexOf(a.code as (typeof METRIC_ORDER)[number]) -
+      METRIC_ORDER.indexOf(b.code as (typeof METRIC_ORDER)[number]),
+  );
+}
+
 /**
  * Patients visible to the signed-in clinician. RLS does the real scoping:
  * this query returns only clients whose care_team includes the caller.
