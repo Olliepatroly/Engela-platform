@@ -37,3 +37,6 @@ Thumbs.db
 *.swp
 *.swo
 *.tsbuildinfo
+
+# Claude Code — local-only, can contain recorded command history with secrets
+.claude/settings.local.json
