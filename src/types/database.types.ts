@@ -303,6 +303,7 @@ export type Database = {
           pillar: Database["public"]["Enums"]["pillar"]
           target_def: Json
           unit: string | null
+          why_it_matters: string | null
         }
         Insert: {
           client_label?: string | null
@@ -313,6 +314,7 @@ export type Database = {
           pillar: Database["public"]["Enums"]["pillar"]
           target_def: Json
           unit?: string | null
+          why_it_matters?: string | null
         }
         Update: {
           client_label?: string | null
@@ -323,6 +325,7 @@ export type Database = {
           pillar?: Database["public"]["Enums"]["pillar"]
           target_def?: Json
           unit?: string | null
+          why_it_matters?: string | null
         }
         Relationships: []
       }
@@ -469,7 +472,7 @@ export type Database = {
       direction_of_benefit: "higher" | "lower" | "range"
       metric_status: "on_track" | "watch" | "flag"
       pillar: "exercise" | "nutrition" | "immune"
-      role: "consultant" | "nurse" | "cep" | "client" | "admin"
+      role: "consultant" | "nurse" | "cep" | "physio" | "client" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -600,7 +603,7 @@ export const Constants = {
       direction_of_benefit: ["higher", "lower", "range"],
       metric_status: ["on_track", "watch", "flag"],
       pillar: ["exercise", "nutrition", "immune"],
-      role: ["consultant", "nurse", "cep", "client", "admin"],
+      role: ["consultant", "nurse", "cep", "physio", "client", "admin"],
     },
   },
 } as const

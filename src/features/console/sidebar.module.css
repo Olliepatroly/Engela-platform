@@ -1,4 +1,17 @@
-/* Collapsible left navigation rail — navy, permanent, sticky. */
+/* Collapsible left navigation rail — navy, permanent, slides with the page.
+   The holder reserves layout width in the flex shell; the rail itself is
+   fixed to the viewport so it always runs the full height of the screen
+   (no blank strip below) and stays in place while the content scrolls. */
+
+.holder {
+  width: 18rem;
+  flex-shrink: 0;
+  transition: width 160ms ease;
+}
+
+.holderCollapsed {
+  width: 4.5rem;
+}
 
 .rail {
   display: flex;
@@ -8,11 +21,11 @@
   padding: var(--space-6) var(--space-4);
   background-color: var(--c-navy);
   color: var(--c-cream);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
   height: 100dvh;
   overflow-y: auto;
-  flex-shrink: 0;
   transition: width 160ms ease;
 }
 
@@ -248,13 +261,15 @@
 }
 
 @media (max-width: 56rem) {
-  .rail {
-    position: static;
-    height: auto;
+  .holder,
+  .holderCollapsed {
     width: 100%;
   }
 
+  .rail,
   .railCollapsed {
+    position: static;
+    height: auto;
     width: 100%;
   }
 }

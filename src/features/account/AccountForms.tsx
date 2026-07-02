@@ -5,7 +5,6 @@ import {
   updateName,
   updateClinicianDetails,
   changePassword,
-  setConsent,
   type AccountState,
 } from "./actions";
 import styles from "./account.module.css";
@@ -112,46 +111,3 @@ export type CareTeamMember = {
   relationship: string | null;
   consent_at: string | null;
 };
-
-export function ConsentManager({ team }: { team: CareTeamMember[] }) {
-  const [state, action, pending] = useActionState(setConsent, initial);
-  return (
-    <section className={styles.form} aria-label="Your care team">
-      <h2 className={styles.formTitle}>Your care team</h2>
-      <p className={styles.formNote}>
-        You choose who can see your programme data. Withdrawing consent takes effect immediately;
-        you can grant it again at any time.
-      </p>
-      <ul className={styles.teamList}>
-        {team.map((member) => {
-          const consented = member.consent_at != null;
-          return (
-            <li key={member.clinician_id} className={styles.teamRow}>
-              <div className={styles.teamInfo}>
-                <span className={styles.teamName}>{member.full_name}</span>
-                <span className={styles.teamMeta}>
-                  {member.discipline ?? member.relationship ?? "Clinical team"}
-                </span>
-                <span className={consented ? styles.consentOn : styles.consentOff}>
-                  {consented ? "Can see your data" : "Cannot see your data"}
-                </span>
-              </div>
-              <form action={action}>
-                <input type="hidden" name="clinicianId" value={member.clinician_id} />
-                <input type="hidden" name="grant" value={consented ? "0" : "1"} />
-                <button
-                  className={consented ? styles.withdrawBtn : styles.grantBtn}
-                  type="submit"
-                  disabled={pending}
-                >
-                  {consented ? "Withdraw consent" : "Grant consent"}
-                </button>
-              </form>
-            </li>
-          );
-        })}
-      </ul>
-      <Feedback state={state} />
-    </section>
-  );
-}

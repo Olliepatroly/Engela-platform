@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { StatusPill } from "@/components/ui";
 import { signOut } from "@/features/auth";
+import { ClientMetrics } from "./ClientMetrics";
 import type { ClientHomeVM } from "./data";
 import styles from "./client-home.module.css";
 
@@ -9,25 +9,6 @@ const PILLAR_LABELS: Record<string, string> = {
   nutrition: "Nutrition",
   immune: "Recovery and immunity",
 };
-
-/* Client loudness: same status logic as the console, gentler words, never red. */
-const CLIENT_STATUS_LABELS: Record<string, string> = {
-  on_track: "On track",
-  watch: "Worth watching",
-  focus: "This week's focus",
-};
-
-function minutesToHhMm(mins: number): string {
-  const h = Math.floor(mins / 60);
-  const m = Math.round(mins % 60);
-  return `${h}h ${String(m).padStart(2, "0")}m`;
-}
-
-function formatMetricValue(code: string, value: number | null): string {
-  if (value == null) return "–";
-  if (code === "active_time") return minutesToHhMm(value);
-  return String(value);
-}
 
 export function ClientHomeView({ home }: { home: ClientHomeVM }) {
   const score = home.review?.composite_score ?? null;
@@ -43,6 +24,9 @@ export function ClientHomeView({ home }: { home: ClientHomeVM }) {
           <span className={styles.wordmarkSans}>HEALTH</span>
         </p>
         <div className={styles.headerActions}>
+          <Link className={styles.accountLink} href="/app/community">
+            Community
+          </Link>
           <Link className={styles.accountLink} href="/app/account">
             Account
           </Link>
@@ -117,29 +101,7 @@ export function ClientHomeView({ home }: { home: ClientHomeVM }) {
 
       <section className={styles.numbers} aria-label="Your numbers">
         <h2 className={styles.sectionTitle}>Your numbers</h2>
-        <ul className={styles.metricList}>
-          {home.metrics.map((metric) => (
-            <li key={metric.code} className={styles.metricCard}>
-              <div className={styles.metricTop}>
-                <span className={styles.metricLabel}>{metric.label}</span>
-                {metric.status ? (
-                  <StatusPill status={metric.status} label={CLIENT_STATUS_LABELS[metric.status]} />
-                ) : null}
-              </div>
-              <span className={styles.metricValue}>
-                {formatMetricValue(metric.code, metric.current)}
-                {metric.unit && metric.code !== "active_time" ? (
-                  <span className={styles.metricUnit}> {metric.unit}</span>
-                ) : null}
-              </span>
-              {metric.is_estimate ? (
-                <span className={styles.estimateNote}>
-                  An estimate from your wearable, not a lab measure.
-                </span>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+        <ClientMetrics metrics={home.metrics} />
       </section>
 
       <p className={styles.disclaimer}>

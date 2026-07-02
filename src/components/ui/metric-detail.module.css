@@ -1,0 +1,155 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background-color: rgba(0, 26, 56, 0.55);
+}
+
+.card {
+  width: 100%;
+  max-width: 44rem;
+  max-height: 90dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  background-color: var(--c-surface);
+  border-radius: var(--radius-client-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  line-height: var(--leading-h2);
+  color: var(--c-ink);
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.estimateChip {
+  padding: 0.0625rem var(--space-2);
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--c-text-secondary);
+  background-color: var(--c-blue-tint);
+  border-radius: var(--radius-pill);
+}
+
+.close {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-body);
+  color: var(--c-text-secondary);
+  background: none;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.close:hover {
+  color: var(--c-ink);
+  border-color: var(--c-slate);
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.currentValue {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--c-ink);
+}
+
+.unit {
+  font-size: var(--text-small);
+  color: var(--c-text-tertiary);
+}
+
+.target {
+  margin-left: auto;
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+}
+
+.chartEmpty {
+  padding: var(--space-8);
+  text-align: center;
+  font-size: var(--text-small);
+  color: var(--c-text-tertiary);
+  border: 1px dashed var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.axisLabel {
+  font-family: var(--font-body);
+  font-size: 11px;
+  fill: var(--c-text-tertiary);
+}
+
+.bandLabel {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: var(--c-slate);
+  opacity: 0.7;
+}
+
+.currentLabel {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--c-ink);
+}
+
+.why {
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--c-amber-tint);
+  border-radius: var(--radius-card);
+}
+
+.whyTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+  margin-bottom: var(--space-2);
+}
+
+.whyText {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-action);
+}

@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  NameForm,
-  PasswordForm,
-  ConsentManager,
-  getAccountInfo,
-  getMyCareTeam,
-} from "@/features/account";
+import { NameForm, PasswordForm, getAccountInfo } from "@/features/account";
 import { signOut } from "@/features/auth";
 import styles from "@/features/account/account.module.css";
 
@@ -17,15 +11,10 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-/**
- * Client account: their details, password, and the consent manager. Consent
- * is real: withdrawing it removes that clinician's access in the database.
- */
+/** Client account: their details and sign-in. Sharing lives in The community. */
 export default async function ClientAccountPage() {
   const account = await getAccountInfo();
   if (!account) redirect("/signin");
-
-  const team = await getMyCareTeam();
 
   return (
     <main className={styles.clientMain}>
@@ -43,7 +32,11 @@ export default async function ClientAccountPage() {
       <div>
         <h1 className={styles.heading}>Your account</h1>
         <p className={styles.subhead}>
-          Your details, your sign-in, and who on the team can see your programme data.
+          Your details and your sign-in. Who follows your progress is managed in{" "}
+          <Link className={styles.backLink} href="/app/community">
+            The community
+          </Link>
+          .
         </p>
       </div>
 
@@ -51,7 +44,6 @@ export default async function ClientAccountPage() {
         Signed in as <span className={styles.emailValue}>{account.email}</span>.
       </p>
 
-      <ConsentManager team={team} />
       <NameForm fullName={account.fullName} />
       <PasswordForm />
 

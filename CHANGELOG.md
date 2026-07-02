@@ -2,6 +2,34 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-02 — Drill-downs, The community, physio role, create-account, nav fix
+
+**What:**
+- **Sidebar fix**: the console rail is now fixed to the viewport inside a width-reserving holder,
+  so it always runs the full height of the screen (no blank strip below) and stays in place while
+  the page scrolls.
+- **Metric drill-down on both surfaces** (`components/ui/MetricDetail*`): clicking a console
+  metric row or a client metric card opens an enlarged view with the 12-week trend against a
+  shaded target zone, the latest value called out, and "Why we track this" education copy (new
+  `metrics_catalog.why_it_matters`, seeded for all 12 metrics; client payload now carries history,
+  target and copy — migration `0008`). Client modals keep softened statuses; never red.
+- **The community** (`/app/community`): the client's team presented as their community, warm and
+  premium rather than clinical. Sharing (consent) moved here: "Following your progress" / "Pause
+  sharing", still database-enforced. Account page slims to personal settings.
+- **New clinicians**: Dr Priya Sharma (Consultant Oncologist) and Tom Whitfield (Physiotherapist).
+  New `physio` role added to the enum, `is_clinical()`, and the app's role model (migration
+  `0009`). Both added to care teams (Michael Mercer plus one other each).
+- **Create an account** (`/create-account`, linked from sign-in): two paths (clinical team /
+  starting my programme), both explaining invite-only access with a request form as a foundation
+  (requests are not sent anywhere yet).
+
+**Verified:** physio login shows exactly his two care-team patients; the rail covers the full
+viewport when scrolled to the page bottom; drill-downs render on console (Resting HR) and client
+(Sleep: amber focus, estimate chip, 7 to 9 target band); community lists all four members with
+working sharing controls.
+
+**Migration implication:** migrations `0008`, `0009` applied to the live DB.
+
 ## 2026-07-02 — Interactive demo: data entry, consent, collapsible nav, accounts
 
 **What:**

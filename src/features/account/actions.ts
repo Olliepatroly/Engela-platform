@@ -78,7 +78,7 @@ export async function updateClinicianDetails(
 
   const user = await requireUser();
   const role = user?.app_metadata?.role;
-  if (!user || !["consultant", "nurse", "cep", "admin"].includes(role)) {
+  if (!user || !["consultant", "nurse", "cep", "physio", "admin"].includes(role)) {
     return { error: "Only clinical accounts can edit these details.", success: null };
   }
 

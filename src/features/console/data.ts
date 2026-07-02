@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
-import type { PillStatus } from "@/components/ui";
+import type { PillStatus, TargetDef } from "@/components/ui";
 import type { Database } from "@/types/database.types";
 
 type Pillar = Database["public"]["Enums"]["pillar"];
@@ -48,6 +48,8 @@ export type MetricRowVM = {
   deltaText: string;
   status: PillStatus | null;
   history: number[];
+  target: TargetDef;
+  whyItMatters: string | null;
 };
 
 export type PillarSectionVM = {
@@ -172,7 +174,7 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
          profiles!clients_profile_id_fkey(full_name)),
        pillar_scores(pillar, score, baseline),
        metric_readings(metric_code, current, previous, delta, status, history,
-         metrics_catalog(code, pillar, name, unit, target_def, is_estimate)),
+         metrics_catalog(code, pillar, name, unit, target_def, is_estimate, why_it_matters)),
        actions_flags(id, text, is_flag, severity, client_visible)`,
     )
     .eq("client_id", clientId)
@@ -203,6 +205,8 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
           deltaText: formatDelta(m.metric_code, m.delta),
           status: (m.status as PillStatus | null) ?? null,
           history: Array.isArray(m.history) ? (m.history as number[]) : [],
+          target: (m.metrics_catalog?.target_def ?? null) as TargetDef,
+          whyItMatters: m.metrics_catalog?.why_it_matters ?? null,
         }));
       return {
         pillar,

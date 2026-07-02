@@ -48,7 +48,8 @@ export function Sidebar({
   };
 
   return (
-    <aside className={`${styles.rail} ${collapsed ? styles.railCollapsed : ""}`}>
+    <div className={`${styles.holder} ${collapsed ? styles.holderCollapsed : ""}`}>
+      <aside className={`${styles.rail} ${collapsed ? styles.railCollapsed : ""}`}>
       <div className={styles.top}>
         {!collapsed ? (
           <p className={styles.wordmark}>
@@ -143,6 +144,7 @@ export function Sidebar({
           </button>
         </form>
       </div>
-    </aside>
+      </aside>
+    </div>
   );
 }

@@ -111,3 +111,20 @@ insert into public.actions_flags (review_id, text, is_flag, severity, client_vis
 insert into public.labs (client_id, taken_at, panel) values
   ('11111111-0000-4000-8000-000000000001', '2026-06-24T08:30:00Z',
    '{"flc_ratio":"1.1 (normal)","paraprotein":"Not detected","hb":"13.8 g/dL","neutrophils":"1.8 x10^9/L","crp":"6.2 mg/L","source":"Sample data for demonstration"}'::jsonb);
+
+-- ── Added 2026-07-02 (second wave): more clinicians for the community ──
+-- demo.consultant2@engelahealth.com  consultant  Dr Priya Sharma
+-- demo.physio@engelahealth.com       physio      Tom Whitfield
+insert into public.profiles (id, role, full_name, email) values
+  ('419dfa98-2c49-41af-a719-0c2ddc6a28b6', 'consultant', 'Dr Priya Sharma', 'demo.consultant2@engelahealth.com'),
+  ('6a0d6159-c45b-4cec-8652-674f6abf4093', 'physio',     'Tom Whitfield',   'demo.physio@engelahealth.com');
+
+insert into public.clinicians (profile_id, discipline, registration_no) values
+  ('419dfa98-2c49-41af-a719-0c2ddc6a28b6', 'Consultant Oncologist', 'GMC 7098765 (sample)'),
+  ('6a0d6159-c45b-4cec-8652-674f6abf4093', 'Physiotherapist', 'HCPC PH123456 (sample)');
+
+insert into public.care_team (client_id, clinician_id, relationship, consent_at) values
+  ('11111111-0000-4000-8000-000000000001', '419dfa98-2c49-41af-a719-0c2ddc6a28b6', 'Consultant', now()),
+  ('11111111-0000-4000-8000-000000000001', '6a0d6159-c45b-4cec-8652-674f6abf4093', 'Physiotherapist', now()),
+  ('11111111-0000-4000-8000-000000000003', '6a0d6159-c45b-4cec-8652-674f6abf4093', 'Physiotherapist', now()),
+  ('11111111-0000-4000-8000-000000000004', '419dfa98-2c49-41af-a719-0c2ddc6a28b6', 'Consultant', now());

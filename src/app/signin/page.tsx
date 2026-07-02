@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SignInForm } from "@/features/auth";
 import styles from "./signin.module.css";
 
@@ -25,6 +26,10 @@ export default function SignInPage() {
         </p>
 
         <SignInForm />
+
+        <p className={styles.subhead}>
+          New here? <Link href="/create-account">Create an account</Link>
+        </p>
       </div>
       <p className={styles.disclaimer}>
         Rehabilitation monitoring tool. Supports the medical team; it does not replace clinical care.

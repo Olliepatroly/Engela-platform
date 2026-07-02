@@ -21,6 +21,9 @@ export type ClientHomeVM = {
     unit: string | null;
     is_estimate: boolean;
     status: "on_track" | "watch" | "focus" | null;
+    history: number[];
+    target_def: { kind: "floor"; value: number } | { kind: "ceiling"; value: number } | { kind: "range"; min: number; max: number } | null;
+    why_it_matters: string | null;
   }[];
   actions: { id: string; text: string }[];
 };

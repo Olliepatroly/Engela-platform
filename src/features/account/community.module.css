@@ -1,0 +1,126 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--c-cream);
+  background-color: var(--c-navy);
+  border-radius: 50%;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--text-body);
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.discipline {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.sharingOn {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--c-ontrack);
+}
+
+.sharingOff {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--c-text-tertiary);
+}
+
+.pauseBtn,
+.resumeBtn {
+  margin-left: auto;
+  padding: var(--space-1) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pauseBtn {
+  color: var(--c-text-secondary);
+  background: none;
+  border: 1px solid var(--c-line);
+}
+
+.pauseBtn:hover {
+  color: var(--c-ink);
+  border-color: var(--c-slate);
+}
+
+.resumeBtn {
+  color: var(--c-navy);
+  background-color: var(--c-amber);
+  border: none;
+}
+
+.pauseBtn:disabled,
+.resumeBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.error {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-flag);
+  background-color: var(--c-flag-bg);
+  border-radius: var(--radius-roster);
+}
+
+.success {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-ontrack);
+  background-color: var(--c-ontrack-bg);
+  border-radius: var(--radius-roster);
+}
+
+.note {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
+}

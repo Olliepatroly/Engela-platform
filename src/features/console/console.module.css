@@ -169,13 +169,32 @@
   color: var(--c-text-tertiary);
 }
 
+/* Rows are buttons: clicking opens the metric drill-down. */
 .metricRow {
   display: grid;
   grid-template-columns: 1.6fr auto 1fr auto;
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-6);
+  border: none;
   border-bottom: 1px solid var(--c-line);
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.metricRow:hover {
+  background-color: var(--c-cream);
+}
+
+.metricRow:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: -2px;
 }
 
 .metricRow:last-child {

@@ -5,16 +5,17 @@
  * and client code can use the types + helpers.
  */
 
-export type Role = "consultant" | "nurse" | "cep" | "client" | "admin";
+export type Role = "consultant" | "nurse" | "cep" | "physio" | "client" | "admin";
 
 // The clinical team: consultant, specialist nurse, clinical exercise physiologist, admin.
-export const CLINICAL_ROLES: readonly Role[] = ["consultant", "nurse", "cep", "admin"] as const;
+export const CLINICAL_ROLES: readonly Role[] = ["consultant", "nurse", "cep", "physio", "admin"] as const;
 
 export function isRole(value: unknown): value is Role {
   return (
     value === "consultant" ||
     value === "nurse" ||
     value === "cep" ||
+    value === "physio" ||
     value === "client" ||
     value === "admin"
   );

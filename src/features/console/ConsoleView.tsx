@@ -1,6 +1,7 @@
-import { StatusPill, Sparkline } from "@/components/ui";
+import { StatusPill } from "@/components/ui";
 import { Sidebar } from "./Sidebar";
 import { AddDataPanel, type MetricOption } from "./AddDataPanel";
+import { MetricTable } from "./MetricTable";
 import { ReportsPanel } from "./ReportsPanel";
 import type { ReviewVM, RosterEntry } from "./data";
 import styles from "./console.module.css";
@@ -122,39 +123,7 @@ export function ConsoleView({
                 <header className={styles.pillarHeader}>
                   <h2 className={styles.pillarTitle}>{pillar.label}</h2>
                 </header>
-                <div className={styles.metricTable} role="table" aria-label={`${pillar.label} metrics`}>
-                  {pillar.metrics.length === 0 ? (
-                    <p className={styles.noMetrics}>
-                      No readings recorded yet. Use Add data below after a session or a test.
-                    </p>
-                  ) : null}
-                  {pillar.metrics.map((metric) => (
-                    <div key={metric.code} className={styles.metricRow} role="row">
-                      <div className={styles.metricName} role="cell">
-                        <span>{metric.name}</span>
-                        {metric.isEstimate ? (
-                          <span className={styles.estimateChip}>estimate, not a lab measure</span>
-                        ) : null}
-                        <span className={styles.metricTarget}>
-                          {metric.targetText}
-                          {metric.unit ? ` ${metric.unit}` : ""}
-                        </span>
-                      </div>
-                      <div className={styles.metricSpark} role="cell">
-                        <Sparkline values={metric.history} />
-                      </div>
-                      <div className={styles.metricNumbers} role="cell">
-                        <span className={styles.metricCurrent}>{metric.current}</span>
-                        <span className={styles.metricPrev}>
-                          from {metric.previous} · {metric.deltaText}
-                        </span>
-                      </div>
-                      <div className={styles.metricStatus} role="cell">
-                        {metric.status ? <StatusPill status={metric.status} /> : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <MetricTable label={pillar.label} metrics={pillar.metrics} />
               </section>
             ))}
 
