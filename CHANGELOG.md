@@ -2,6 +2,36 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-02 — Backend wired up: GitHub, Cloudflare, Supabase live
+
+**What:**
+- Connected the repo to GitHub (`Olliepatroly/Engela-platform`, private) and pushed `main`.
+- Set GitHub Actions secrets (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`); CI and Deploy
+  workflows are green, production Worker is live at the `workers.dev` subdomain.
+- Connected the Supabase MCP server (`.mcp.json`) to the `Engela-platform` project
+  (`hsxhylmheonlcmsjlffy`) and applied the schema: `0001_init.sql` as originally authored, plus
+  three follow-up hardening migrations found via the security/performance advisors —
+  `0002_harden_function_grants.sql` and `0003_revoke_anon_function_grants.sql` (Postgres/Supabase
+  both grant `EXECUTE` on new functions to `anon`/`authenticated`/`PUBLIC` by default; the
+  SECURITY DEFINER role-check helpers had no legitimate anon caller, so that default grant is now
+  revoked from `anon`), and `0004_rls_initplan_perf.sql` (wrap `auth.uid()` in a subselect in three
+  policies per Supabase's RLS perf guidance — no security change). `metrics_catalog` seeded (12
+  rows). Regenerated `src/types/database.types.ts` from the live schema, replacing the hand-authored
+  placeholder.
+- Added `.claude/settings.local.json` to `.gitignore` — it was recording full command lines
+  (including Cloudflare API tokens) in its permission allowlist; caught before anything was
+  committed.
+
+**Why:** Get the Phase 0 "preview deploy live" gate genuinely live end to end, and give Phase 1
+a real, RLS-protected schema to build against instead of a placeholder.
+
+**Migration/secret/DNS implication:** Live DB now has real RLS-protected tables (all empty except
+`metrics_catalog`). Region is `eu-west-1` (Ireland) — CLAUDE.md's decision log specifies EU/London;
+flagged to Oliver as unresolved (region is immutable post-creation). Domain `engelahealth.com` is
+an active Cloudflare zone but not yet attached to the Worker — still on the `workers.dev` URL.
+Supabase DPA still needs signing before real patient data goes in.
+
 ## 2026-07-01 — Domain set to engelahealth.com
 
 **What:** Pointed the platform at **engelahealth.com** (apex) instead of a subdomain of the
