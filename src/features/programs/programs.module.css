@@ -16,6 +16,12 @@
   width: 100%;
 }
 
+@media (max-width: 56rem) {
+  .shell {
+    flex-direction: column;
+  }
+}
+
 .banner {
   display: flex;
   align-items: flex-start;
