@@ -2,6 +2,49 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-03 — Exercise programmes, body map, community search + team requests
+
+**What:**
+- **Exercise programmes** (`src/features/programs/`, `/console/programs`, `/app/program`):
+  a shared exercise library (28 seeded exercises across cardiovascular, resistance and mobility,
+  each tagged with primary/secondary muscle groups), per-client programmes made of dated sessions,
+  and prescriptions (sets, reps, weight, minutes, distance, notes). The whole care team views a
+  client's programme; **building is the CEP's capability** (and admin): add exercises to the
+  library, start a programme (archives the previous one), add sessions, add exercises to a
+  session. The console shows an upcoming/history dashboard; clicking a session opens the full
+  breakdown (per-category exercises, prescription, muscles worked).
+- **Body map** (`src/components/ui/BodyMap.tsx`): MuscleWiki-style front + back SVG figures,
+  male or female per client (`clients.body_map`, Beatrice Cole seeded female), muscles worked
+  highlighted (amber = worked directly, slate = also involved) with a text legend, so colour is
+  never the only signal.
+- **Client programme surface**: "Your programme" (next up, coming up, what you have done) and a
+  session page where the client marks **each part done separately** (cardiovascular, resistance,
+  mobility); the session completes when every part is done, reopening is one tap and guilt-free.
+  A skipped session reads as neutral ("Skipped, rest protects progress too") — no red on the
+  client app, ever.
+- **Community search + team requests** (`src/features/search/`, `/console/search`, search on
+  `/app/community`): name search over directory-safe fields only (name, role, discipline; no MRN,
+  no diagnosis). Clients ask members to join their community; members invite clients into their
+  care or invite fellow members to a client's team. Accept/decline/withdraw flows with a full
+  audit trail. **Consent stays the client's alone**: a client's own request or acceptance grants
+  consent; a member-to-member acceptance joins with sharing paused (`consent_at` null) until the
+  client turns it on in The community.
+- Demo seed: Michael Mercer gets "Rebuild strength, block 3" (17 sessions, 8 June to 15 July
+  2026, one deliberately missed) built by Daniel Ross (`supabase/seed_demo_programs.sql`).
+
+**Verified live (real DB, both surfaces):** CEP sees the dashboard and session breakdown with the
+body map; client marked mobility done on today's session (audited `session_part.completed`);
+client search shows "In your community" for existing team; Dr Priya Sharma invited Daniel Ross to
+Leo Yates's team, Daniel accepted, and the care_team row landed with `consent_at` null — Leo does
+not appear in Daniel's roster until Leo enables sharing. Typecheck, lint and build green; Supabase
+security advisor shows no new findings beyond the intentional SECURITY DEFINER RPC warnings.
+
+**Migration implication:** migrations `0011` (enums, `exercises`, `programs`, `program_sessions`,
+`session_exercises`, `team_requests`, `clients.body_map`, RLS deny-by-default,
+`search_directory()`), `0012` (exercise library seed) and `0013` (`my_team_requests()`) applied
+to the live project and mirrored in `supabase/migrations/`. `database.types.ts` regenerated.
+No secret or DNS changes.
+
 ## 2026-07-03 — Domain live, DPA signed
 
 **What:** Oliver removed the two Namecheap parking DNS records (A @ apex, CNAME `www`) from the
