@@ -1,0 +1,108 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.figures {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.figure {
+  margin: 0;
+  flex: 0 1 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.figure svg {
+  width: 100%;
+  height: auto;
+}
+
+.viewLabel {
+  font-size: var(--text-label);
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-text-tertiary);
+}
+
+/* The neutral figure. */
+.body circle,
+.body rect,
+.body path,
+.body ellipse {
+  fill: var(--c-blue-tint);
+}
+
+.body line {
+  stroke: var(--c-blue-tint);
+}
+
+/* Highlighted muscle groups. Primary = the amber action colour; secondary =
+ * quieter slate. The legend repeats both in words. */
+.primary * {
+  fill: var(--c-amber);
+}
+
+.secondary * {
+  fill: var(--c-slate);
+  opacity: 0.45;
+}
+
+.legend {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.legendRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.legendTerm {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-ink);
+  white-space: nowrap;
+}
+
+.legendDot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+.legendDotPrimary {
+  background: var(--c-amber);
+}
+
+.legendDotSecondary {
+  background: var(--c-slate);
+  opacity: 0.45;
+}
+
+.legendNames {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.legendEmpty {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--c-text-tertiary);
+}

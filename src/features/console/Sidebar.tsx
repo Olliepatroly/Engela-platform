@@ -28,11 +28,14 @@ export function Sidebar({
   viewerName,
   selectedId,
   activeNav,
+  rosterBasePath = "/console",
 }: {
   roster: RosterEntry[];
   viewerName: string;
   selectedId?: string;
-  activeNav: "review" | "account";
+  activeNav: "review" | "programs" | "search" | "account";
+  /** Where a roster click lands: the review (default) or the programmes page. */
+  rosterBasePath?: string;
 }) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -83,6 +86,24 @@ export function Sidebar({
           {!collapsed ? <span>Weekly review</span> : null}
         </Link>
         <Link
+          href="/console/programs"
+          className={`${styles.navLink} ${activeNav === "programs" ? styles.navLinkActive : ""}`}
+        >
+          <span className={styles.navIcon} aria-hidden="true">
+            ▷
+          </span>
+          {!collapsed ? <span>Programmes</span> : null}
+        </Link>
+        <Link
+          href="/console/search"
+          className={`${styles.navLink} ${activeNav === "search" ? styles.navLinkActive : ""}`}
+        >
+          <span className={styles.navIcon} aria-hidden="true">
+            ⌕
+          </span>
+          {!collapsed ? <span>Find people</span> : null}
+        </Link>
+        <Link
           href="/console/account"
           className={`${styles.navLink} ${activeNav === "account" ? styles.navLinkActive : ""}`}
         >
@@ -100,7 +121,7 @@ export function Sidebar({
           return (
             <Link
               key={entry.clientId}
-              href={`/console?patient=${entry.clientId}`}
+              href={`${rosterBasePath}?patient=${entry.clientId}`}
               className={`${styles.rosterRow} ${selected ? styles.rosterRowSelected : ""}`}
               aria-current={selected ? "page" : undefined}
               title={`${entry.fullName} · ${entry.mrn}`}
