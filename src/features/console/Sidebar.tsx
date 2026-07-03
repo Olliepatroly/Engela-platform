@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { StatusPill } from "@/components/ui";
+import { EngelaMark, StatusPill } from "@/components/ui";
 import { signOut } from "@/features/auth";
 import type { RosterEntry } from "./data";
 import styles from "./sidebar.module.css";
@@ -68,12 +68,13 @@ export function Sidebar({
       <div className={styles.top}>
         {!effectiveCollapsed ? (
           <p className={styles.wordmark}>
+            <EngelaMark className={styles.markIcon} size={1.05} />
             <span className={styles.wordmarkSerif}>Engela</span>
             <span className={styles.wordmarkSans}>HEALTH</span>
           </p>
         ) : (
-          <p className={styles.wordmarkMini} aria-label="Engela Health">
-            E
+          <p className={styles.wordmarkMini}>
+            <EngelaMark className={styles.markIcon} size={1.05} />
           </p>
         )}
         <button

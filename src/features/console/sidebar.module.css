@@ -50,8 +50,13 @@
 
 .wordmark {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-2);
+}
+
+.markIcon {
+  color: var(--c-amber);
+  flex-shrink: 0;
 }
 
 .wordmarkSerif {

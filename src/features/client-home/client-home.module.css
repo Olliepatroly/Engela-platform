@@ -19,8 +19,14 @@
 
 .wordmark {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-2);
+  min-width: 0;
+}
+
+.mark {
+  color: var(--c-amber);
+  flex-shrink: 0;
 }
 
 .wordmarkSerif {
@@ -37,10 +43,13 @@
   color: var(--c-slate);
 }
 
-.headerActions {
+/* Nav pills on their own row so they can wrap on small screens without
+   pushing the sign-out button off the edge or crowding the logo. */
+.clientNav {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-2);
+  margin-top: calc(-1 * var(--space-3));
 }
 
 .accountLink {

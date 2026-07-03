@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EngelaMark } from "@/components/ui";
 import { signOut } from "@/features/auth";
 import { ClientMetrics } from "./ClientMetrics";
 import type { ClientHomeVM } from "./data";
@@ -20,26 +21,28 @@ export function ClientHomeView({ home }: { home: ClientHomeVM }) {
     <main className={styles.main}>
       <header className={styles.header}>
         <p className={styles.wordmark}>
+          <EngelaMark className={styles.mark} size={1.1} />
           <span className={styles.wordmarkSerif}>Engela</span>
           <span className={styles.wordmarkSans}>HEALTH</span>
         </p>
-        <div className={styles.headerActions}>
-          <Link className={styles.accountLink} href="/app/program">
-            Programme
-          </Link>
-          <Link className={styles.accountLink} href="/app/community">
-            Community
-          </Link>
-          <Link className={styles.accountLink} href="/app/account">
-            Account
-          </Link>
-          <form action={signOut}>
-            <button className={styles.signOut} type="submit">
-              Sign out
-            </button>
-          </form>
-        </div>
+        <form action={signOut}>
+          <button className={styles.signOut} type="submit">
+            Sign out
+          </button>
+        </form>
       </header>
+
+      <nav className={styles.clientNav} aria-label="Your app">
+        <Link className={styles.accountLink} href="/app/program">
+          Programme
+        </Link>
+        <Link className={styles.accountLink} href="/app/community">
+          Community
+        </Link>
+        <Link className={styles.accountLink} href="/app/account">
+          Account
+        </Link>
+      </nav>
 
       <section className={styles.hero}>
         <h1 className={styles.greeting}>Hello {home.client.first_name}</h1>
