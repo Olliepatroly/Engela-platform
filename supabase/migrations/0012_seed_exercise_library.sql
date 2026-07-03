@@ -1,0 +1,67 @@
+-- Starter exercise library across the three categories, with muscle groups
+-- for the body map. Reference data (no PHI). CEPs extend this from the
+-- console; created_by null marks the Engela starter set. Copy follows the
+-- house style: plain British English, no em or en dashes.
+
+insert into public.exercises (name, category, primary_muscles, secondary_muscles, equipment, instructions) values
+  -- Cardiovascular
+  ('Stationary cycling', 'cardiovascular', '{quadriceps,calves}', '{hamstrings,glutes}', 'Exercise bike',
+   'Settle into a steady rhythm you could hold while talking. Keep the resistance light to moderate and your shoulders relaxed.'),
+  ('Treadmill walking', 'cardiovascular', '{quadriceps,calves}', '{hamstrings,glutes}', 'Treadmill',
+   'Walk tall at a brisk but comfortable pace. Add a gentle incline only when the flat feels easy.'),
+  ('Rowing machine', 'cardiovascular', '{upper_back,quadriceps}', '{lats,biceps,hamstrings}', 'Rowing machine',
+   'Push with the legs first, then lean back slightly and draw the handle to the ribs. Keep each stroke smooth and unhurried.'),
+  ('Elliptical cross trainer', 'cardiovascular', '{quadriceps,glutes}', '{hamstrings,calves}', 'Cross trainer',
+   'Move with an even, gliding stride. Hold the moving handles lightly to bring the upper body along.'),
+  ('Swimming', 'cardiovascular', '{lats,shoulders}', '{upper_back,triceps}', 'Pool',
+   'Choose a stroke that feels comfortable and swim at a pace where your breathing stays controlled. Rest between lengths as needed.'),
+  ('Brisk outdoor walk', 'cardiovascular', '{quadriceps,calves}', '{glutes}', 'None',
+   'Walk at a pace that raises your breathing but still lets you speak in full sentences.'),
+
+  -- Resistance
+  ('Goblet squat', 'resistance', '{quadriceps,glutes}', '{hamstrings,abdominals}', 'Dumbbell or kettlebell',
+   'Hold the weight at your chest, feet shoulder width apart. Sit down and back until your thighs are near parallel, then stand tall.'),
+  ('Leg press', 'resistance', '{quadriceps,glutes}', '{hamstrings}', 'Leg press machine',
+   'Lower the platform under control until your knees reach a right angle, then press away without locking the knees.'),
+  ('Seated row', 'resistance', '{upper_back,lats}', '{biceps,forearms}', 'Cable machine',
+   'Sit tall and draw the handle to your stomach, squeezing the shoulder blades together. Let the arms straighten slowly.'),
+  ('Lat pulldown', 'resistance', '{lats}', '{biceps,upper_back}', 'Cable machine',
+   'Pull the bar to the top of your chest with a tall posture, then let it rise under control.'),
+  ('Chest press', 'resistance', '{chest}', '{triceps,shoulders}', 'Machine or dumbbells',
+   'Press the handles away until your arms are nearly straight, then return slowly to a comfortable stretch.'),
+  ('Dumbbell shoulder press', 'resistance', '{shoulders}', '{triceps,traps}', 'Dumbbells',
+   'Press the dumbbells overhead until your arms are nearly straight, then lower to ear height with control.'),
+  ('Biceps curl', 'resistance', '{biceps}', '{forearms}', 'Dumbbells',
+   'Curl the weights towards your shoulders without swinging, then lower slowly.'),
+  ('Triceps pushdown', 'resistance', '{triceps}', '{forearms}', 'Cable machine',
+   'With elbows pinned to your sides, press the bar down until your arms are straight, then return under control.'),
+  ('Romanian deadlift', 'resistance', '{hamstrings,glutes}', '{lower_back,forearms}', 'Dumbbells or barbell',
+   'Hinge at the hips with a long, flat back, sliding the weight down your thighs. Stand tall by driving the hips forward.'),
+  ('Glute bridge', 'resistance', '{glutes}', '{hamstrings,abdominals}', 'Mat',
+   'Lying on your back with knees bent, press through the heels and lift your hips until your body forms a straight line. Lower slowly.'),
+  ('Standing calf raise', 'resistance', '{calves}', '{}', 'Step or flat floor',
+   'Rise onto the balls of your feet, pause at the top, then lower with control. Hold a rail for balance if needed.'),
+  ('Plank', 'resistance', '{abdominals}', '{obliques,lower_back,shoulders}', 'Mat',
+   'Rest on forearms and toes with your body in one straight line. Breathe steadily and stop before your hips sag.'),
+  ('Farmers carry', 'resistance', '{forearms,traps}', '{abdominals,obliques}', 'Dumbbells or kettlebells',
+   'Hold a weight in each hand and walk tall for the set distance, keeping the shoulders level and the tummy braced.'),
+  ('Wall press up', 'resistance', '{chest}', '{triceps,shoulders}', 'Wall',
+   'Hands on the wall at shoulder height, lower your chest towards the wall and press back to straight arms.'),
+  ('Step up', 'resistance', '{quadriceps,glutes}', '{calves,hamstrings}', 'Step or low bench',
+   'Step up with one foot, press through that heel to stand tall on the step, then step down with control. Swap legs each set.'),
+
+  -- Mobility
+  ('Cat cow stretch', 'mobility', '{lower_back}', '{abdominals}', 'Mat',
+   'On hands and knees, round your back up towards the ceiling, then let it dip gently while lifting your head. Move slowly with your breath.'),
+  ('Hamstring stretch', 'mobility', '{hamstrings}', '{calves}', 'Mat or chair',
+   'With one leg extended, hinge forwards from the hips until you feel a gentle stretch behind the thigh. Hold and breathe.'),
+  ('Hip flexor stretch', 'mobility', '{quadriceps}', '{glutes}', 'Mat',
+   'In a half kneeling position, tuck the tailbone and shift your weight gently forwards until you feel a stretch at the front of the hip.'),
+  ('Thoracic rotation', 'mobility', '{obliques,upper_back}', '{}', 'Mat',
+   'On hands and knees, place one hand behind your head and rotate the elbow up towards the ceiling, following it with your eyes.'),
+  ('Shoulder circles', 'mobility', '{shoulders}', '{traps}', 'None',
+   'Roll the shoulders slowly backwards in big, easy circles, letting the arms hang relaxed.'),
+  ('Standing calf stretch', 'mobility', '{calves}', '{}', 'Wall',
+   'With hands on the wall and one leg stepped back, press the back heel into the floor until you feel a gentle stretch in the calf.'),
+  ('Childs pose', 'mobility', '{lower_back}', '{lats}', 'Mat',
+   'From kneeling, sit back towards your heels and reach the arms forwards along the floor. Rest and breathe into your back.');
