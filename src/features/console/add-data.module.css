@@ -20,14 +20,32 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-6);
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+@media (max-width: 72rem) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 56rem) {
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+.formNote {
+  font-size: var(--text-label);
+  line-height: 1.5;
+  color: var(--c-text-secondary);
+}
+
+.rangeRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
 }
 
 .form {

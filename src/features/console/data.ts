@@ -184,6 +184,15 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
 
   if (error || !data || !data.clients) return null;
 
+  // Per-client goal overrides: the effective target everywhere on this page.
+  const { data: overrides } = await supabase
+    .from("client_metric_targets")
+    .select("metric_code, target_def")
+    .eq("client_id", clientId);
+  const overrideMap = new Map(
+    (overrides ?? []).map((o) => [o.metric_code, o.target_def as TargetDef]),
+  );
+
   const pillars: PillarSectionVM[] = (["exercise", "nutrition", "immune"] as Pillar[]).map(
     (pillar) => {
       const score = data.pillar_scores.find((p) => p.pillar === pillar);
@@ -194,20 +203,27 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
             METRIC_ORDER.indexOf(a.metric_code as (typeof METRIC_ORDER)[number]) -
             METRIC_ORDER.indexOf(b.metric_code as (typeof METRIC_ORDER)[number]),
         )
-        .map((m) => ({
-          code: m.metric_code,
-          name: m.metrics_catalog?.name ?? m.metric_code,
-          unit: m.metrics_catalog?.unit ?? null,
-          isEstimate: m.metrics_catalog?.is_estimate ?? false,
-          targetText: targetText(m.metrics_catalog?.target_def),
-          current: formatValue(m.metric_code, m.current),
-          previous: formatValue(m.metric_code, m.previous),
-          deltaText: formatDelta(m.metric_code, m.delta),
-          status: (m.status as PillStatus | null) ?? null,
-          history: Array.isArray(m.history) ? (m.history as number[]) : [],
-          target: (m.metrics_catalog?.target_def ?? null) as TargetDef,
-          whyItMatters: m.metrics_catalog?.why_it_matters ?? null,
-        }));
+        .map((m) => {
+          const effective =
+            overrideMap.get(m.metric_code) ??
+            ((m.metrics_catalog?.target_def ?? null) as TargetDef);
+          return {
+            code: m.metric_code,
+            name: m.metrics_catalog?.name ?? m.metric_code,
+            unit: m.metrics_catalog?.unit ?? null,
+            isEstimate: m.metrics_catalog?.is_estimate ?? false,
+            targetText:
+              targetText(effective) +
+              (overrideMap.has(m.metric_code) ? " (goal set for this client)" : ""),
+            current: formatValue(m.metric_code, m.current),
+            previous: formatValue(m.metric_code, m.previous),
+            deltaText: formatDelta(m.metric_code, m.delta),
+            status: (m.status as PillStatus | null) ?? null,
+            history: Array.isArray(m.history) ? (m.history as number[]) : [],
+            target: effective,
+            whyItMatters: m.metrics_catalog?.why_it_matters ?? null,
+          };
+        });
       return {
         pillar,
         label: PILLAR_LABELS[pillar],

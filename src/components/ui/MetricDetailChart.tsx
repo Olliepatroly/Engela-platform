@@ -80,9 +80,19 @@ export function MetricDetailChart({
             fill="var(--c-blue-tint)"
             opacity="0.55"
           />
-          <text x={W - PAD_R - 6} y={bandTop + 14} textAnchor="end" className={styles.bandLabel}>
-            target zone
-          </text>
+          {/* Label sits bottom-left inside the band, away from the value
+              callout (top right) and the latest data point. Skipped when the
+              band is too thin to hold text. */}
+          {bandBottom - bandTop >= 22 ? (
+            <text
+              x={PAD_L + 8}
+              y={bandBottom - 8}
+              textAnchor="start"
+              className={styles.bandLabel}
+            >
+              target zone
+            </text>
+          ) : null}
         </>
       ) : null}
 
@@ -90,12 +100,12 @@ export function MetricDetailChart({
         <line key={gy} x1={PAD_L} y1={gy} x2={W - PAD_R} y2={gy} stroke="var(--c-line)" />
       ))}
 
-      {/* Y extents */}
-      <text x={PAD_L - 8} y={y(hi - pad) + 4} textAnchor="end" className={styles.axisLabel}>
-        {Number((hi - pad).toFixed(1))}
+      {/* Y extents, pinned to the plot's top and bottom edges */}
+      <text x={PAD_L - 8} y={PAD_T + 4} textAnchor="end" className={styles.axisLabel}>
+        {Number(hi.toFixed(1))}
       </text>
-      <text x={PAD_L - 8} y={y(lo + pad) + 4} textAnchor="end" className={styles.axisLabel}>
-        {Number((lo + pad).toFixed(1))}
+      <text x={PAD_L - 8} y={H - PAD_B + 4} textAnchor="end" className={styles.axisLabel}>
+        {Number(lo.toFixed(1))}
       </text>
 
       <polyline
@@ -116,10 +126,11 @@ export function MetricDetailChart({
         />
       ))}
 
-      {/* Latest value called out next to its point */}
+      {/* Latest value called out near its point: above it, or below when the
+          point sits close to the top of the plot. */}
       <text
-        x={Math.min(x(values.length - 1), W - PAD_R - 4)}
-        y={Math.max(y(last) - 12, 12)}
+        x={Math.min(x(values.length - 1) - 8, W - PAD_R - 4)}
+        y={y(last) < PAD_T + 26 ? y(last) + 20 : y(last) - 12}
         textAnchor="end"
         className={styles.currentLabel}
       >

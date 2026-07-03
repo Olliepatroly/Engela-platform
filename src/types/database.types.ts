@@ -123,6 +123,52 @@ export type Database = {
           },
         ]
       }
+      client_metric_targets: {
+        Row: {
+          client_id: string
+          metric_code: string
+          set_at: string
+          set_by: string | null
+          target_def: Json
+        }
+        Insert: {
+          client_id: string
+          metric_code: string
+          set_at?: string
+          set_by?: string | null
+          target_def: Json
+        }
+        Update: {
+          client_id?: string
+          metric_code?: string
+          set_at?: string
+          set_by?: string | null
+          target_def?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_metric_targets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_metric_targets_metric_code_fkey"
+            columns: ["metric_code"]
+            isOneToOne: false
+            referencedRelation: "metrics_catalog"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "client_metric_targets_set_by_fkey"
+            columns: ["set_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           baseline_week: number | null
@@ -253,6 +299,7 @@ export type Database = {
           id: string
           metric_code: string
           previous: number | null
+          recorded_at: string | null
           review_id: string
           status: Database["public"]["Enums"]["metric_status"] | null
         }
@@ -263,6 +310,7 @@ export type Database = {
           id?: string
           metric_code: string
           previous?: number | null
+          recorded_at?: string | null
           review_id: string
           status?: Database["public"]["Enums"]["metric_status"] | null
         }
@@ -273,6 +321,7 @@ export type Database = {
           id?: string
           metric_code?: string
           previous?: number | null
+          recorded_at?: string | null
           review_id?: string
           status?: Database["public"]["Enums"]["metric_status"] | null
         }

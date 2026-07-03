@@ -2,6 +2,36 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-03 — Scoring engine, per-client goals, correctable back-dateable entries, chart fixes
+
+**What:**
+- **Scoring engine** (`src/features/console/scoring.ts`): each metric scores 0 to 10 from
+  60% on-target (latest reading vs effective target: in target 10, near miss 6.5, outside 3) and
+  40% consistency (share of recent readings inside the target). Pillar = mean of its metrics;
+  composite = mean of pillars; review status = worst metric status. Recomputed automatically on
+  every reading, correction and goal change.
+- **Per-client goals** (`client_metric_targets`, migration `0010`): the care team adjusts a
+  metric's goal for one client from the console ("Adjust a goal": at or above / at or below /
+  between). The latest reading is reassessed, scores recompute, the console labels the override
+  "(goal set for this client)", and the client app's target zone follows it. Audited
+  (`metric_goal.set`).
+- **Data entry**: readings carry a date and time (`metric_readings.recorded_at`, back-dateable
+  after a session or test), and a correction mode replaces the most recent entry after a faulty
+  input instead of appending (audited as `metric_reading.corrected`).
+- **Activity sessions goal fixed**: one activity a day, so at or above 6 per week (was a
+  placeholder of 18). Michael Mercer's history adjusted to match.
+- **Chart overlap fixes**: the target-zone label moved bottom-left inside the band (skipped when
+  the band is too thin), the latest-value callout flips below the point near the top edge, and
+  Y-axis extents pin to the plot edges.
+
+**Verified live:** VO2 max goal set to "at or above 50" flipped the reading to on track and
+recomputed scores (composite 8.0 to 8.1, immune 7.1 to 7.5); a deliberately faulty grip strength
+of 99 was corrected to 54 and vanished from the stored history; recorded_at persisted from the
+picker; audit trail shows recorded / corrected / goal-set entries.
+
+**Migration implication:** migration `0010` applied (new table + column + catalogue target
+update + client payload change).
+
 ## 2026-07-02 — Drill-downs, The community, physio role, create-account, nav fix
 
 **What:**
