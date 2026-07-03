@@ -2,6 +2,24 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-03 — Domain live, DPA signed
+
+**What:** Oliver removed the two Namecheap parking DNS records (A @ apex, CNAME `www`) from the
+`engelahealth.com` zone; MX/SPF/DMARC (email forwarding) were left untouched. With the hostname
+free of externally-managed records, the Cloudflare Workers custom domain attach that previously
+failed now succeeds: `engelahealth.com` is attached to the `engela-platform` Worker
+(`environment: production`), certificate provisioned, confirmed live at
+`https://engelahealth.com/signin`. Oliver also signed Supabase's DPA, confirming this project as
+processing UK GDPR Article 9 special-category (health) data.
+
+**Open follow-on:** `www.engelahealth.com` currently resolves nowhere (no DNS record since the old
+parking CNAME was removed and nothing replaced it) — decide whether `www` should redirect to the
+apex or serve the app directly, then wire it up. Region is still `eu-west-1` (Ireland) vs the
+decision log's stated London preference — unresolved, revisit before real patient data.
+
+**Migration/secret/DNS implication:** No schema change. DNS zone changed (see above); no GitHub
+secrets changed.
+
 ## 2026-07-03 — Scoring engine, per-client goals, correctable back-dateable entries, chart fixes
 
 **What:**
