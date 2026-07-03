@@ -2,6 +2,38 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-03 — Programmes split into four pages, calendar blocks, redrawn body figures
+
+**What:**
+- **The console programmes area is now four focused pages** (tab nav under the patient banner)
+  instead of one busy screen:
+  - **Exercise overview** (`/console/programs`): strength, cardiovascular and mobility trends
+    across completed sessions (total weight moved and active minutes per session, sparkline,
+    change since the start), plus an adherence card (completed, missed, % done, coming up).
+    Sessions with no weighted or timed work in a category do not drag that trend to zero.
+  - **Blocks** (`/console/programs/blocks`): a month calendar (Monday weeks, prev/next
+    navigation) of every session with status dots, today ringed and the active block's span
+    tinted; below it, every block with an edit form (title, focus, start date, status) for the
+    CEP via a new audited `updateProgram` action. Setting a block active archives the others.
+  - **Sessions** (`/console/programs/sessions`): the upcoming/completed lists and the full
+    breakdown as before, and **CEPs and physios can now mark session parts done for the
+    client** (for sessions they take together); the audit trail records who, and consultants
+    stay read-only.
+  - **Planning** (`/console/programs/planning`): start a block, add sessions, put exercises
+    into any upcoming session (new session picker), grow the library. CEP/admin only.
+- UI language shifted from "programme" to **"block"** on the console (DB tables unchanged).
+- **Body figures redrawn as anatomical line art**: bezier-authored front/back figures
+  (300 x 640) with every muscle compartment outlined (MuscleWiki style), highlighted groups
+  filled amber (worked directly) or slate (also involved), and the female variant derived
+  from a piecewise proportional transform. Both surfaces get the new figures automatically.
+
+**Verified live:** all four tabs render for the CEP with real data (strength 2040 kg, up 13%);
+calendar shows July 2026 with the block span highlighted and a builder-added session picked up;
+planning forms present with the session picker; the client session page renders the new figures
+on mobile and category completion still works both ways.
+
+**Migration implication:** none (no schema change). Front-end and server actions only.
+
 ## 2026-07-03 — Exercise programmes, body map, community search + team requests
 
 **What:**

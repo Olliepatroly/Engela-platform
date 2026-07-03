@@ -32,27 +32,54 @@
   color: var(--c-text-tertiary);
 }
 
-/* The neutral figure. */
-.body circle,
-.body rect,
-.body path,
-.body ellipse {
+/* Anatomical line art: light figure with slate outlines. Every muscle
+ * compartment is drawn; highlighting fills it in. */
+.body {
   fill: var(--c-blue-tint);
+  fill-opacity: 0.3;
+  stroke: var(--c-slate);
+  stroke-opacity: 0.8;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
 }
 
-.body line {
-  stroke: var(--c-blue-tint);
+.muscle path {
+  fill: var(--c-cream);
+  fill-opacity: 0.01;
+  stroke: var(--c-slate);
+  stroke-opacity: 0.55;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
 }
 
 /* Highlighted muscle groups. Primary = the amber action colour; secondary =
  * quieter slate. The legend repeats both in words. */
-.primary * {
+.primary path {
   fill: var(--c-amber);
+  fill-opacity: 0.85;
+  stroke-opacity: 0.75;
 }
 
-.secondary * {
+.secondary path {
   fill: var(--c-slate);
-  opacity: 0.45;
+  fill-opacity: 0.4;
+  stroke-opacity: 0.7;
+}
+
+.detail path {
+  fill: none;
+  stroke: var(--c-slate);
+  stroke-opacity: 0.45;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.hair {
+  fill: var(--c-slate);
+  fill-opacity: 0.2;
+  stroke: var(--c-slate);
+  stroke-opacity: 0.6;
+  stroke-width: 1.4;
 }
 
 .legend {

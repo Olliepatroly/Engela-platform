@@ -1,75 +1,53 @@
 import type { Metadata } from "next";
-import { Sidebar, getRoster } from "@/features/console";
+import { Sidebar } from "@/features/console";
 import {
-  ProgramsView,
+  OverviewView,
+  ProgramHeader,
   getClientProgram,
-  getExerciseLibrary,
-  getSessionDetail,
+  getPerformanceOverview,
 } from "@/features/programs";
-import { createClient } from "@/lib/supabase/server";
+import { getProgramsPageContext } from "./common";
 import styles from "@/features/programs/programs.module.css";
 
 export const metadata: Metadata = {
-  title: "Exercise programmes",
+  title: "Exercise overview",
 };
 
 // Supabase reads are per-request (cookie-scoped RLS) — never prerender.
 export const dynamic = "force-dynamic";
 
 /**
- * Exercise programmes for the clinical team. The whole care team views a
- * client's programme, sessions and history; CEPs (and admin) build: exercises,
- * programmes, sessions, prescriptions. RLS scopes every read to the care team.
+ * Exercise overview: strength, cardiovascular and mobility trends across the
+ * client's completed sessions, plus adherence. First of the four programme
+ * pages (overview, blocks, sessions, planning).
  */
-export default async function ProgramsPage({
+export default async function ProgramsOverviewPage({
   searchParams,
 }: {
-  searchParams: Promise<{ patient?: string; session?: string }>;
+  searchParams: Promise<{ patient?: string }>;
 }) {
-  const { patient, session } = await searchParams;
+  const { patient } = await searchParams;
+  const ctx = await getProgramsPageContext(patient);
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const viewerName =
-    (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "Clinical team";
-  const role = user?.app_metadata?.role as string | undefined;
-  const canBuild = role === "cep" || role === "admin";
-
-  const roster = await getRoster();
-  const selectedId = patient ?? roster[0]?.clientId;
-  const selected = roster.find((r) => r.clientId === selectedId) ?? null;
-
-  const [program, sessionDetail, library] = await Promise.all([
-    selectedId ? getClientProgram(selectedId) : Promise.resolve(null),
-    session ? getSessionDetail(session) : Promise.resolve(null),
-    getExerciseLibrary(),
-  ]);
+  const [overview, program] = ctx.selected
+    ? await Promise.all([
+        getPerformanceOverview(ctx.selected.clientId),
+        getClientProgram(ctx.selected.clientId),
+      ])
+    : [null, null];
 
   return (
     <div className={styles.shell}>
       <Sidebar
-        roster={roster}
-        viewerName={viewerName}
-        selectedId={selectedId}
+        roster={ctx.roster}
+        viewerName={ctx.viewerName}
+        selectedId={ctx.selected?.clientId}
         activeNav="programs"
         rosterBasePath="/console/programs"
       />
       <main className={styles.main}>
-        <ProgramsView
-          patient={
-            selected
-              ? { clientId: selected.clientId, fullName: selected.fullName, mrn: selected.mrn }
-              : null
-          }
-          program={program}
-          sessionDetail={
-            sessionDetail && sessionDetail.clientId === selectedId ? sessionDetail : null
-          }
-          library={library}
-          canBuild={canBuild}
-        />
+        <ProgramHeader patient={ctx.selected} active="overview" />
+        {ctx.selected && overview ? <OverviewView overview={overview} program={program} /> : null}
       </main>
     </div>
   );

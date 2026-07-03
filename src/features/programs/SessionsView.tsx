@@ -1,31 +1,16 @@
 import Link from "next/link";
 import { BodyMap, MUSCLE_LABELS, StatusPill } from "@/components/ui";
-import {
-  AddLibraryExerciseForm,
-  AddSessionExerciseForm,
-  AddSessionForm,
-  CreateProgramForm,
-} from "./BuilderPanels";
+import { AddSessionExerciseForm } from "./BuilderPanels";
+import { CategoryToggle } from "./CategoryToggle";
 import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   formatPrescription,
-  type ExerciseOption,
-  type ProgramVM,
-  type SessionDetailVM,
+  formatSessionDate,
   type SessionStatus,
-  type SessionSummaryVM,
-} from "./data";
+} from "./constants";
+import type { ExerciseOption, ProgramVM, SessionDetailVM, SessionSummaryVM } from "./data";
 import styles from "./programs.module.css";
-
-export function formatSessionDate(iso: string): string {
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-  });
-}
 
 function SessionStatusPill({ status }: { status: SessionStatus }) {
   if (status === "completed") return <StatusPill status="on_track" label="Completed" />;
@@ -53,7 +38,7 @@ function SessionList({
           <li key={s.id}>
             <Link
               className={styles.sessionRow}
-              href={`/console/programs?patient=${clientId}&session=${s.id}`}
+              href={`/console/programs/sessions?patient=${clientId}&session=${s.id}`}
             >
               <span className={styles.sessionDate}>{formatSessionDate(s.scheduledFor)}</span>
               <span className={styles.sessionTitle}>{s.title}</span>
@@ -79,12 +64,14 @@ function SessionBreakdown({
   figure,
   clientId,
   canBuild,
+  canComplete,
   library,
 }: {
   detail: SessionDetailVM;
   figure: "male" | "female";
   clientId: string;
   canBuild: boolean;
+  canComplete: boolean;
   library: ExerciseOption[];
 }) {
   return (
@@ -92,7 +79,10 @@ function SessionBreakdown({
       <section className={styles.breakdown} aria-label="Session breakdown">
         <header className={styles.breakdownHeader}>
           <div>
-            <Link className={styles.backLink} href={`/console/programs?patient=${clientId}`}>
+            <Link
+              className={styles.backLink}
+              href={`/console/programs/sessions?patient=${clientId}`}
+            >
               ← All sessions
             </Link>
             <h2 className={styles.breakdownTitle}>{detail.title}</h2>
@@ -108,6 +98,7 @@ function SessionBreakdown({
             {CATEGORY_ORDER.map((cat) => {
               const entries = detail.exercises.filter((e) => e.category === cat);
               if (entries.length === 0) return null;
+              const allDone = entries.every((e) => e.completed);
               return (
                 <div key={cat} className={styles.categoryBlock}>
                   <h3 className={styles.categoryTitle}>{CATEGORY_LABELS[cat]}</h3>
@@ -130,9 +121,25 @@ function SessionBreakdown({
                       </li>
                     ))}
                   </ul>
+                  {canComplete ? (
+                    <div className={styles.trainerToggle}>
+                      <CategoryToggle
+                        sessionId={detail.id}
+                        category={cat}
+                        label={CATEGORY_LABELS[cat]}
+                        done={allDone}
+                      />
+                    </div>
+                  ) : null}
                 </div>
               );
             })}
+            {canComplete ? (
+              <p className={styles.trainerNote}>
+                Marking a part done here records it for the client (for sessions you take
+                together). It is written to the audit trail under your name.
+              </p>
+            ) : null}
           </div>
           <aside className={styles.bodyMapPanel} aria-label="Muscles worked">
             <h3 className={styles.categoryTitle}>Muscles worked</h3>
@@ -151,96 +158,65 @@ function SessionBreakdown({
 }
 
 /**
- * Exercise programmes surface for the clinical team. Everyone on the care
- * team reads; building (programmes, sessions, the exercise library) is the
- * exercise physiologist's capability.
+ * Upcoming and completed sessions. Opening one shows the full breakdown;
+ * CEPs and physios can mark parts done for sessions they take with the
+ * client. Building lives on the Planning page.
  */
-export function ProgramsView({
-  patient,
+export function SessionsView({
+  clientId,
   program,
   sessionDetail,
   library,
   canBuild,
+  canComplete,
 }: {
-  patient: { clientId: string; fullName: string; mrn: string } | null;
+  clientId: string;
   program: ProgramVM | null;
   sessionDetail: SessionDetailVM | null;
   library: ExerciseOption[];
   canBuild: boolean;
+  canComplete: boolean;
 }) {
-  if (!patient) {
+  if (sessionDetail) {
     return (
-      <div className={styles.empty}>
-        <h1 className={styles.emptyHeading}>Exercise programmes</h1>
-        <p className={styles.emptyNote}>Select a patient from the roster to see their programme.</p>
-      </div>
+      <SessionBreakdown
+        detail={sessionDetail}
+        figure={program?.bodyMap ?? "male"}
+        clientId={clientId}
+        canBuild={canBuild}
+        canComplete={canComplete}
+        library={library}
+      />
+    );
+  }
+
+  if (!program) {
+    return (
+      <section className={styles.programCard}>
+        <h2 className={styles.programTitle}>No active block</h2>
+        <p className={styles.emptyNote}>
+          {canBuild
+            ? "Start a block from the Planning page, then add sessions."
+            : "The exercise physiologist has not started a block for this client yet."}
+        </p>
+      </section>
     );
   }
 
   return (
-    <>
-      <header className={styles.banner}>
-        <div>
-          <h1 className={styles.patientName}>{patient.fullName}</h1>
-          <p className={styles.patientMeta}>{patient.mrn} · Exercise programme</p>
-        </div>
-      </header>
-
-      {program == null ? (
-        <section className={styles.programCard}>
-          <h2 className={styles.programTitle}>No programme yet</h2>
-          <p className={styles.emptyNote}>
-            {canBuild
-              ? "Start a programme below, then add sessions and exercises."
-              : "The exercise physiologist has not started a programme for this client yet."}
-          </p>
-        </section>
-      ) : (
-        <section className={styles.programCard}>
-          <h2 className={styles.programTitle}>{program.title}</h2>
-          {program.focus ? <p className={styles.programFocus}>{program.focus}</p> : null}
-          <p className={styles.programMeta}>
-            {program.startsOn ? `Started ${formatSessionDate(program.startsOn)}` : "Start date not set"}
-            {program.createdByName ? ` · Built by ${program.createdByName}` : ""}
-          </p>
-        </section>
-      )}
-
-      {sessionDetail ? (
-        <SessionBreakdown
-          detail={sessionDetail}
-          figure={program?.bodyMap ?? "male"}
-          clientId={patient.clientId}
-          canBuild={canBuild}
-          library={library}
-        />
-      ) : program ? (
-        <div className={styles.listsGrid}>
-          <SessionList
-            heading="Upcoming sessions"
-            sessions={program.upcoming}
-            clientId={patient.clientId}
-            emptyText="Nothing scheduled ahead."
-          />
-          <SessionList
-            heading="History"
-            sessions={program.history}
-            clientId={patient.clientId}
-            emptyText="No sessions yet."
-          />
-        </div>
-      ) : null}
-
-      {canBuild ? (
-        <section className={styles.builder} aria-label="Programme builder">
-          <h2 className={styles.builderTitle}>Build</h2>
-          <div className={styles.builderGrid}>
-            {program ? <AddSessionForm programId={program.id} /> : null}
-            <CreateProgramForm clientId={patient.clientId} />
-            <AddLibraryExerciseForm />
-          </div>
-        </section>
-      ) : null}
-    </>
+    <div className={styles.listsGrid}>
+      <SessionList
+        heading="Upcoming sessions"
+        sessions={program.upcoming}
+        clientId={clientId}
+        emptyText="Nothing scheduled ahead."
+      />
+      <SessionList
+        heading="Completed and past"
+        sessions={program.history}
+        clientId={clientId}
+        emptyText="No sessions yet."
+      />
+    </div>
   );
 }

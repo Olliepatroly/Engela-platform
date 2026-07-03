@@ -7,9 +7,15 @@ import {
   addSession,
   addSessionExercise,
   createProgram,
+  updateProgram,
   type ProgramActionState,
 } from "./actions";
-import { CATEGORY_LABELS, CATEGORY_ORDER, type ExerciseOption } from "./constants";
+import {
+  CATEGORY_LABELS,
+  CATEGORY_ORDER,
+  formatSessionDate,
+  type ExerciseOption,
+} from "./constants";
 import styles from "./programs.module.css";
 
 const initial: ProgramActionState = { error: null, success: null };
@@ -26,12 +32,12 @@ function Feedback({ state }: { state: ProgramActionState }) {
   return null;
 }
 
-/** Start a programme for the selected client (archives any previous one). */
+/** Start a block for the selected client (archives any previous one). */
 export function CreateProgramForm({ clientId }: { clientId: string }) {
   const [state, action, pending] = useActionState(createProgram, initial);
   return (
     <form className={styles.builderForm} action={action}>
-      <h3 className={styles.builderFormTitle}>Start a programme</h3>
+      <h3 className={styles.builderFormTitle}>Start a block</h3>
       <input type="hidden" name="clientId" value={clientId} />
       <label className={styles.field}>
         <span className={styles.fieldLabel}>Title</span>
@@ -47,7 +53,63 @@ export function CreateProgramForm({ clientId }: { clientId: string }) {
       </label>
       <Feedback state={state} />
       <button className={styles.submit} type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Create programme"}
+        {pending ? "Saving…" : "Create block"}
+      </button>
+    </form>
+  );
+}
+
+/** Edit an existing block: title, focus, start date, status. */
+export function BlockEditForm({
+  block,
+}: {
+  block: {
+    id: string;
+    title: string;
+    focus: string | null;
+    startsOn: string | null;
+    status: "active" | "completed" | "archived";
+  };
+}) {
+  const [state, action, pending] = useActionState(updateProgram, initial);
+  return (
+    <form className={styles.builderForm} action={action}>
+      <input type="hidden" name="programId" value={block.id} />
+      <label className={styles.field}>
+        <span className={styles.fieldLabel}>Title</span>
+        <input className={styles.input} name="title" required defaultValue={block.title} />
+      </label>
+      <label className={styles.field}>
+        <span className={styles.fieldLabel}>Focus (shown to the client)</span>
+        <textarea
+          className={styles.textarea}
+          name="focus"
+          rows={2}
+          defaultValue={block.focus ?? ""}
+        />
+      </label>
+      <div className={styles.prescriptionRow}>
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>Starts on</span>
+          <input
+            className={styles.input}
+            type="date"
+            name="startsOn"
+            defaultValue={block.startsOn ?? ""}
+          />
+        </label>
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>Status</span>
+          <select className={styles.input} name="status" defaultValue={block.status}>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="archived">Archived</option>
+          </select>
+        </label>
+      </div>
+      <Feedback state={state} />
+      <button className={styles.submit} type="submit" disabled={pending}>
+        {pending ? "Saving…" : "Save block"}
       </button>
     </form>
   );
@@ -76,19 +138,42 @@ export function AddSessionForm({ programId }: { programId: string }) {
   );
 }
 
-/** Add an exercise with its prescription to the open session. */
+/**
+ * Add an exercise with its prescription to a session: either the open one
+ * (fixed sessionId) or one picked from the upcoming list (planning page).
+ */
 export function AddSessionExerciseForm({
   sessionId,
+  sessions,
   library,
 }: {
-  sessionId: string;
+  sessionId?: string;
+  sessions?: { id: string; title: string; scheduledFor: string }[];
   library: ExerciseOption[];
 }) {
   const [state, action, pending] = useActionState(addSessionExercise, initial);
   return (
     <form className={styles.builderForm} action={action}>
-      <h3 className={styles.builderFormTitle}>Add an exercise to this session</h3>
-      <input type="hidden" name="sessionId" value={sessionId} />
+      <h3 className={styles.builderFormTitle}>
+        {sessionId ? "Add an exercise to this session" : "Add an exercise to a session"}
+      </h3>
+      {sessionId ? (
+        <input type="hidden" name="sessionId" value={sessionId} />
+      ) : (
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>Session</span>
+          <select className={styles.input} name="sessionId" required defaultValue="">
+            <option value="" disabled>
+              Choose a session
+            </option>
+            {(sessions ?? []).map((s) => (
+              <option key={s.id} value={s.id}>
+                {formatSessionDate(s.scheduledFor)} · {s.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className={styles.field}>
         <span className={styles.fieldLabel}>Exercise</span>
         <select className={styles.input} name="exerciseId" required defaultValue="">

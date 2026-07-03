@@ -204,6 +204,167 @@ export async function getSessionDetail(sessionId: string): Promise<SessionDetail
   };
 }
 
+export type CategoryTrend = {
+  category: ExerciseCategory;
+  label: string;
+  caption: string;
+  unit: string;
+  /** One value per completed session that included this category, oldest first. */
+  values: number[];
+  latest: number | null;
+  /** Percentage change from the first non-zero value to the latest, if known. */
+  changePct: number | null;
+};
+
+export type PerformanceOverview = {
+  trends: CategoryTrend[];
+  completedCount: number;
+  missedCount: number;
+  /** Sessions whose date has passed (completed + missed). */
+  pastCount: number;
+  upcomingCount: number;
+};
+
+/**
+ * Progress per category across every completed session (all blocks): total
+ * weight moved for resistance, active minutes for cardiovascular, minutes for
+ * mobility. Simple, explainable measures, not clinical scores.
+ */
+export async function getPerformanceOverview(clientId: string): Promise<PerformanceOverview> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("program_sessions")
+    .select(
+      `id, scheduled_for, status,
+       session_exercises(sets, reps, weight_kg, duration_min, exercises(category))`,
+    )
+    .eq("client_id", clientId)
+    .order("scheduled_for");
+
+  const sessions = data ?? [];
+  const today = new Date().toISOString().slice(0, 10);
+  const completed = sessions.filter((s) => s.status === "completed");
+
+  const seriesFor = (category: ExerciseCategory): number[] => {
+    const values: number[] = [];
+    for (const s of completed) {
+      const entries = s.session_exercises.filter((se) => se.exercises?.category === category);
+      if (entries.length === 0) continue;
+      const value =
+        category === "resistance"
+          ? entries.reduce((sum, e) => sum + (e.sets ?? 1) * (e.reps ?? 1) * (e.weight_kg ?? 0), 0)
+          : entries.reduce((sum, e) => sum + (e.duration_min ?? 0), 0);
+      // A session with only unweighted or untimed work says nothing about
+      // this measure, so it does not drag the trend to zero.
+      if (value > 0) values.push(Math.round(value * 10) / 10);
+    }
+    return values;
+  };
+
+  const trend = (
+    category: ExerciseCategory,
+    label: string,
+    caption: string,
+    unit: string,
+  ): CategoryTrend => {
+    const values = seriesFor(category);
+    const latest = values.at(-1) ?? null;
+    const first = values.find((v) => v > 0);
+    const changePct =
+      latest != null && first != null && first > 0 && values.length >= 2
+        ? Math.round(((latest - first) / first) * 100)
+        : null;
+    return { category, label, caption, unit, values, latest, changePct };
+  };
+
+  return {
+    trends: [
+      trend("resistance", "Strength", "Total weight moved per session", "kg"),
+      trend("cardiovascular", "Cardiovascular", "Active minutes per session", "min"),
+      trend("mobility", "Mobility", "Mobility minutes per session", "min"),
+    ],
+    completedCount: completed.length,
+    missedCount: sessions.filter((s) => s.status === "missed").length,
+    pastCount: sessions.filter((s) => s.scheduled_for < today).length,
+    upcomingCount: sessions.filter((s) => s.scheduled_for >= today && s.status === "scheduled")
+      .length,
+  };
+}
+
+export type BlockVM = {
+  id: string;
+  title: string;
+  focus: string | null;
+  status: "active" | "completed" | "archived";
+  startsOn: string | null;
+  createdByName: string | null;
+  firstSession: string | null;
+  lastSession: string | null;
+  sessionCount: number;
+  completedCount: number;
+};
+
+/** Every block (programme) for this client, newest first, with date spans. */
+export async function getBlocks(clientId: string): Promise<BlockVM[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("programs")
+    .select(
+      `id, title, focus, status, starts_on, created_at,
+       created_by_profile:profiles!programs_created_by_fkey(full_name),
+       program_sessions(scheduled_for, status)`,
+    )
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false });
+
+  return (data ?? []).map((p) => {
+    const dates = p.program_sessions.map((s) => s.scheduled_for).sort();
+    return {
+      id: p.id,
+      title: p.title,
+      focus: p.focus,
+      status: (["active", "completed", "archived"].includes(p.status)
+        ? p.status
+        : "archived") as BlockVM["status"],
+      startsOn: p.starts_on,
+      createdByName: p.created_by_profile?.full_name ?? null,
+      firstSession: dates[0] ?? null,
+      lastSession: dates.at(-1) ?? null,
+      sessionCount: p.program_sessions.length,
+      completedCount: p.program_sessions.filter((s) => s.status === "completed").length,
+    };
+  });
+}
+
+export type CalendarSession = {
+  id: string;
+  title: string;
+  status: SessionStatus;
+  scheduledFor: string;
+};
+
+/** All of this client's sessions between two dates (inclusive), for the calendar. */
+export async function getSessionsBetween(
+  clientId: string,
+  startIso: string,
+  endIso: string,
+): Promise<CalendarSession[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("program_sessions")
+    .select("id, title, status, scheduled_for")
+    .eq("client_id", clientId)
+    .gte("scheduled_for", startIso)
+    .lte("scheduled_for", endIso)
+    .order("scheduled_for");
+  return (data ?? []).map((s) => ({
+    id: s.id,
+    title: s.title,
+    status: s.status,
+    scheduledFor: s.scheduled_for,
+  }));
+}
+
 /** The signed-in client's own record (id + body figure), or null. */
 export async function getOwnClient(): Promise<{
   clientId: string;

@@ -101,7 +101,7 @@ export async function addExerciseToLibrary(
 
 const programSchema = z.object({
   clientId: z.string().uuid(),
-  title: z.string().trim().min(2, "Give the programme a title.").max(120),
+  title: z.string().trim().min(2, "Give the block a title.").max(120),
   focus: z.string().trim().max(300).optional(),
   startsOn: z.string().optional(),
 });
@@ -118,7 +118,7 @@ export async function createProgram(
     startsOn: formData.get("startsOn") || undefined,
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Check the programme details.", success: null };
+    return { error: parsed.error.issues[0]?.message ?? "Check the block details.", success: null };
   }
 
   const user = await requireBuilder();
@@ -145,7 +145,7 @@ export async function createProgram(
     })
     .select("id")
     .single();
-  if (error || !inserted) return { error: "Could not create the programme. Try again.", success: null };
+  if (error || !inserted) return { error: "Could not create the block. Try again.", success: null };
 
   await admin.from("audit_log").insert({
     actor_id: user.id,
@@ -157,7 +157,78 @@ export async function createProgram(
 
   revalidatePath("/console/programs");
   revalidatePath("/app/program");
-  return { error: null, success: "Programme created. Add its first session below." };
+  return { error: null, success: "Block created. Add its first session below." };
+}
+
+const updateProgramSchema = z.object({
+  programId: z.string().uuid(),
+  title: z.string().trim().min(2, "Give the block a title.").max(120),
+  focus: z.string().trim().max(300).optional(),
+  startsOn: z.string().optional(),
+  status: z.enum(["active", "completed", "archived"]),
+});
+
+/** Edit a block: title, focus, start date, status (CEP/admin). */
+export async function updateProgram(
+  _prev: ProgramActionState,
+  formData: FormData,
+): Promise<ProgramActionState> {
+  const parsed = updateProgramSchema.safeParse({
+    programId: formData.get("programId"),
+    title: formData.get("title"),
+    focus: formData.get("focus") || undefined,
+    startsOn: formData.get("startsOn") || undefined,
+    status: formData.get("status"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the block details.", success: null };
+  }
+
+  const user = await requireBuilder();
+  if (!user) return { error: "Only exercise physiologists can edit blocks.", success: null };
+
+  const admin = getAdminClient();
+  const { data: program } = await admin
+    .from("programs")
+    .select("id, client_id")
+    .eq("id", parsed.data.programId)
+    .maybeSingle();
+  if (!program || !(await builderCanSeeClient(program.client_id))) {
+    return { error: "You do not have access to this client.", success: null };
+  }
+
+  // One active block per client keeps both surfaces unambiguous.
+  if (parsed.data.status === "active") {
+    await admin
+      .from("programs")
+      .update({ status: "archived" })
+      .eq("client_id", program.client_id)
+      .eq("status", "active")
+      .neq("id", program.id);
+  }
+
+  const { error } = await admin
+    .from("programs")
+    .update({
+      title: parsed.data.title,
+      focus: parsed.data.focus || null,
+      starts_on: parsed.data.startsOn || null,
+      status: parsed.data.status,
+    })
+    .eq("id", program.id);
+  if (error) return { error: "Could not save the block. Try again.", success: null };
+
+  await admin.from("audit_log").insert({
+    actor_id: user.id,
+    action: "program.updated",
+    entity: "programs",
+    entity_id: program.id,
+    meta: { client_id: program.client_id, status: parsed.data.status },
+  });
+
+  revalidatePath("/console/programs", "layout");
+  revalidatePath("/app/program");
+  return { error: null, success: "Block updated." };
 }
 
 const sessionSchema = z.object({
@@ -304,9 +375,10 @@ const categoryDoneSchema = z.object({
 });
 
 /**
- * The client marks one part of a session done (cardiovascular, resistance or
- * mobility, each completed separately). When every exercise in the session is
- * done the session completes. Audited like every other write.
+ * Mark one part of a session done (cardiovascular, resistance or mobility,
+ * each completed separately). The client does this themselves; a CEP or
+ * physio on the care team can do it for them when they train together (the
+ * audit trail records who). When every exercise is done the session completes.
  */
 export async function setCategoryDone(
   _prev: ProgramActionState,
@@ -324,8 +396,11 @@ export async function setCategoryDone(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user || user.app_metadata?.role !== "client") {
-    return { error: "Only clients can mark their own sessions.", success: null };
+  const role = user?.app_metadata?.role;
+  const isClient = role === "client";
+  const isTrainer = role === "cep" || role === "physio" || role === "admin";
+  if (!user || (!isClient && !isTrainer)) {
+    return { error: "You cannot mark this session.", success: null };
   }
 
   const admin = getAdminClient();
@@ -334,8 +409,19 @@ export async function setCategoryDone(
     .select("id, client_id, status, clients(profile_id)")
     .eq("id", sessionId)
     .maybeSingle();
-  if (!session || session.clients?.profile_id !== user.id) {
+  if (!session) return { error: "This session could not be found.", success: null };
+
+  if (isClient && session.clients?.profile_id !== user.id) {
     return { error: "This session is not part of your programme.", success: null };
+  }
+  if (isTrainer) {
+    // Care team with consent: the trainer's own RLS read is the check.
+    const { data: visible } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("id", session.client_id)
+      .maybeSingle();
+    if (!visible) return { error: "You do not have access to this client.", success: null };
   }
 
   const { data: entries } = await admin
@@ -378,19 +464,34 @@ export async function setCategoryDone(
     action: done ? "session_part.completed" : "session_part.reopened",
     entity: "program_sessions",
     entity_id: sessionId,
-    meta: { client_id: session.client_id, category, session_complete: allDone && done },
+    meta: {
+      client_id: session.client_id,
+      category,
+      session_complete: allDone && done,
+      by_role: role,
+    },
   });
 
   revalidatePath("/app/program");
   revalidatePath(`/app/program/${sessionId}`);
-  revalidatePath("/console/programs");
+  revalidatePath("/console/programs", "layout");
+  if (isClient) {
+    return {
+      error: null,
+      success: done
+        ? allDone
+          ? "Wonderful. That completes the whole session."
+          : "Nice work. That part is done."
+        : "No problem, we have reopened that part.",
+    };
+  }
   return {
     error: null,
     success: done
       ? allDone
-        ? "Wonderful. That completes the whole session."
-        : "Nice work. That part is done."
-      : "No problem, we have reopened that part.",
+        ? "Marked done. That completes the whole session."
+        : "Marked done for this client."
+      : "Reopened.",
   };
 }
 
