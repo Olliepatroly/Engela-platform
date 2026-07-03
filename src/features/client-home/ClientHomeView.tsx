@@ -24,6 +24,9 @@ export function ClientHomeView({ home }: { home: ClientHomeVM }) {
           <span className={styles.wordmarkSans}>HEALTH</span>
         </p>
         <div className={styles.headerActions}>
+          <Link className={styles.accountLink} href="/app/program">
+            Programme
+          </Link>
           <Link className={styles.accountLink} href="/app/community">
             Community
           </Link>

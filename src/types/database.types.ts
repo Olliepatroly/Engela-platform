@@ -172,6 +172,7 @@ export type Database = {
       clients: {
         Row: {
           baseline_week: number | null
+          body_map: string
           consultant_id: string | null
           created_at: string
           diagnosis: string
@@ -185,6 +186,7 @@ export type Database = {
         }
         Insert: {
           baseline_week?: number | null
+          body_map?: string
           consultant_id?: string | null
           created_at?: string
           diagnosis: string
@@ -198,6 +200,7 @@ export type Database = {
         }
         Update: {
           baseline_week?: number | null
+          body_map?: string
           consultant_id?: string | null
           created_at?: string
           diagnosis?: string
@@ -254,6 +257,50 @@ export type Database = {
             foreignKeyName: "clinicians_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercises: {
+        Row: {
+          category: Database["public"]["Enums"]["exercise_category"]
+          created_at: string
+          created_by: string | null
+          equipment: string | null
+          id: string
+          instructions: string | null
+          name: string
+          primary_muscles: Database["public"]["Enums"]["muscle_group"][]
+          secondary_muscles: Database["public"]["Enums"]["muscle_group"][]
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["exercise_category"]
+          created_at?: string
+          created_by?: string | null
+          equipment?: string | null
+          id?: string
+          instructions?: string | null
+          name: string
+          primary_muscles?: Database["public"]["Enums"]["muscle_group"][]
+          secondary_muscles?: Database["public"]["Enums"]["muscle_group"][]
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["exercise_category"]
+          created_at?: string
+          created_by?: string | null
+          equipment?: string | null
+          id?: string
+          instructions?: string | null
+          name?: string
+          primary_muscles?: Database["public"]["Enums"]["muscle_group"][]
+          secondary_muscles?: Database["public"]["Enums"]["muscle_group"][]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -434,6 +481,240 @@ export type Database = {
         }
         Relationships: []
       }
+      program_sessions: {
+        Row: {
+          client_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          program_id: string
+          scheduled_for: string
+          status: Database["public"]["Enums"]["session_status"]
+          title: string
+        }
+        Insert: {
+          client_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          program_id: string
+          scheduled_for: string
+          status?: Database["public"]["Enums"]["session_status"]
+          title: string
+        }
+        Update: {
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          program_id?: string
+          scheduled_for?: string
+          status?: Database["public"]["Enums"]["session_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_sessions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programs: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          focus: string | null
+          id: string
+          starts_on: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          focus?: string | null
+          id?: string
+          starts_on?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          focus?: string | null
+          id?: string
+          starts_on?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_exercises: {
+        Row: {
+          completed_at: string | null
+          distance_km: number | null
+          duration_min: number | null
+          exercise_id: string
+          id: string
+          notes: string | null
+          position: number
+          reps: number | null
+          session_id: string
+          sets: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          distance_km?: number | null
+          duration_min?: number | null
+          exercise_id: string
+          id?: string
+          notes?: string | null
+          position?: number
+          reps?: number | null
+          session_id: string
+          sets?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          distance_km?: number | null
+          duration_min?: number | null
+          exercise_id?: string
+          id?: string
+          notes?: string | null
+          position?: number
+          reps?: number | null
+          session_id?: string
+          sets?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_exercises_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "program_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_requests: {
+        Row: {
+          client_id: string
+          clinician_id: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["team_request_kind"]
+          message: string | null
+          requested_by: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["team_request_status"]
+        }
+        Insert: {
+          client_id: string
+          clinician_id: string
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["team_request_kind"]
+          message?: string | null
+          requested_by: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["team_request_status"]
+        }
+        Update: {
+          client_id?: string
+          clinician_id?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["team_request_kind"]
+          message?: string | null
+          requested_by?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["team_request_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_requests_clinician_id_fkey"
+            columns: ["clinician_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_requests_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       weekly_reviews: {
         Row: {
           client_id: string
@@ -511,17 +792,48 @@ export type Database = {
     Functions: {
       client_home_payload: { Args: never; Returns: Json }
       current_client_id: { Args: never; Returns: string }
-      my_care_team: { Args: never; Returns: Json }
       is_admin: { Args: never; Returns: boolean }
       is_clinical: { Args: never; Returns: boolean }
       is_on_care_team: { Args: { p_client: string }; Returns: boolean }
       jwt_role: { Args: never; Returns: string }
+      my_care_team: { Args: never; Returns: Json }
+      my_team_requests: { Args: never; Returns: Json }
+      search_directory: {
+        Args: { q: string }
+        Returns: {
+          discipline: string
+          full_name: string
+          id: string
+          kind: string
+          member_role: string
+        }[]
+      }
     }
     Enums: {
       direction_of_benefit: "higher" | "lower" | "range"
+      exercise_category: "cardiovascular" | "resistance" | "mobility"
       metric_status: "on_track" | "watch" | "flag"
+      muscle_group:
+        | "traps"
+        | "shoulders"
+        | "chest"
+        | "biceps"
+        | "triceps"
+        | "forearms"
+        | "abdominals"
+        | "obliques"
+        | "upper_back"
+        | "lats"
+        | "lower_back"
+        | "glutes"
+        | "quadriceps"
+        | "hamstrings"
+        | "calves"
       pillar: "exercise" | "nutrition" | "immune"
-      role: "consultant" | "nurse" | "cep" | "physio" | "client" | "admin"
+      role: "consultant" | "nurse" | "cep" | "client" | "admin" | "physio"
+      session_status: "scheduled" | "completed" | "missed"
+      team_request_kind: "client_request" | "clinician_invite" | "peer_invite"
+      team_request_status: "pending" | "accepted" | "declined" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -650,9 +962,30 @@ export const Constants = {
   public: {
     Enums: {
       direction_of_benefit: ["higher", "lower", "range"],
+      exercise_category: ["cardiovascular", "resistance", "mobility"],
       metric_status: ["on_track", "watch", "flag"],
+      muscle_group: [
+        "traps",
+        "shoulders",
+        "chest",
+        "biceps",
+        "triceps",
+        "forearms",
+        "abdominals",
+        "obliques",
+        "upper_back",
+        "lats",
+        "lower_back",
+        "glutes",
+        "quadriceps",
+        "hamstrings",
+        "calves",
+      ],
       pillar: ["exercise", "nutrition", "immune"],
-      role: ["consultant", "nurse", "cep", "physio", "client", "admin"],
+      role: ["consultant", "nurse", "cep", "client", "admin", "physio"],
+      session_status: ["scheduled", "completed", "missed"],
+      team_request_kind: ["client_request", "clinician_invite", "peer_invite"],
+      team_request_status: ["pending", "accepted", "declined", "cancelled"],
     },
   },
 } as const

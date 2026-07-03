@@ -1,0 +1,135 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.figures {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.figure {
+  margin: 0;
+  flex: 0 1 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.figure svg {
+  width: 100%;
+  height: auto;
+}
+
+.viewLabel {
+  font-size: var(--text-label);
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-text-tertiary);
+}
+
+/* Anatomical line art: light figure with slate outlines. Every muscle
+ * compartment is drawn; highlighting fills it in. */
+.body {
+  fill: var(--c-blue-tint);
+  fill-opacity: 0.3;
+  stroke: var(--c-slate);
+  stroke-opacity: 0.8;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+.muscle path {
+  fill: var(--c-cream);
+  fill-opacity: 0.01;
+  stroke: var(--c-slate);
+  stroke-opacity: 0.55;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+/* Highlighted muscle groups. Primary = the amber action colour; secondary =
+ * quieter slate. The legend repeats both in words. */
+.primary path {
+  fill: var(--c-amber);
+  fill-opacity: 0.85;
+  stroke-opacity: 0.75;
+}
+
+.secondary path {
+  fill: var(--c-slate);
+  fill-opacity: 0.4;
+  stroke-opacity: 0.7;
+}
+
+.detail path {
+  fill: none;
+  stroke: var(--c-slate);
+  stroke-opacity: 0.45;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.hair {
+  fill: var(--c-slate);
+  fill-opacity: 0.2;
+  stroke: var(--c-slate);
+  stroke-opacity: 0.6;
+  stroke-width: 1.4;
+}
+
+.legend {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.legendRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.legendTerm {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-ink);
+  white-space: nowrap;
+}
+
+.legendDot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+.legendDotPrimary {
+  background: var(--c-amber);
+}
+
+.legendDotSecondary {
+  background: var(--c-slate);
+  opacity: 0.45;
+}
+
+.legendNames {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.legendEmpty {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--c-text-tertiary);
+}

@@ -1,0 +1,844 @@
+/* Exercise programmes — console surface. Same shell pattern as the weekly
+   review: navy rail (features/console Sidebar) + cream working canvas. */
+
+.shell {
+  display: flex;
+  min-height: 100dvh;
+  background-color: var(--c-cream);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  max-width: 64rem;
+  width: 100%;
+}
+
+@media (max-width: 56rem) {
+  .shell {
+    flex-direction: column;
+  }
+}
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.patientName {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  line-height: var(--leading-h1);
+  color: var(--c-ink);
+}
+
+.patientMeta {
+  margin-top: var(--space-1);
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-12);
+}
+
+.emptyHeading {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  color: var(--c-ink);
+}
+
+.emptyNote {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+/* ── Tabs (overview / blocks / sessions / planning) ───────────────── */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--c-line);
+  padding-bottom: var(--space-3);
+}
+
+.tab {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-text-secondary);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+}
+
+.tab:hover {
+  background-color: var(--c-blue-tint);
+  color: var(--c-ink);
+}
+
+.tabActive {
+  color: var(--c-navy);
+  background-color: var(--c-amber-tint);
+  border-color: var(--c-amber);
+}
+
+/* ── Exercise overview: trends + adherence ────────────────────────── */
+
+.trendGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+@media (max-width: 64rem) {
+  .trendGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.trendCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.trendLabel {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+}
+
+.trendValue {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  line-height: var(--leading-h1);
+  color: var(--c-ink);
+}
+
+.trendUnit {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.trendCaption {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.trendSpark {
+  margin-top: var(--space-1);
+}
+
+.trendChange {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-text-secondary);
+}
+
+.trendChangeUp {
+  color: var(--c-ontrack);
+}
+
+.adherenceCard {
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.adherenceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-top: var(--space-3);
+}
+
+.adherenceStat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.adherenceValue {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--c-ink);
+}
+
+.adherenceCaption {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+/* ── Blocks: calendar ─────────────────────────────────────────────── */
+
+.calendarCard {
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.calendarNav {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.calendarNavBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  font-size: var(--text-body);
+  color: var(--c-slate);
+  text-decoration: none;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+}
+
+.calendarNavBtn:hover {
+  background-color: var(--c-blue-tint);
+}
+
+.calendarLegend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-3);
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-text-secondary);
+}
+
+.legendSwatch {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  background-color: var(--c-amber-tint);
+  border: 1px solid var(--c-amber);
+  border-radius: 0.25rem;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--c-text-tertiary);
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top: 1px solid var(--c-line);
+  border-left: 1px solid var(--c-line);
+}
+
+.calendarWeekday {
+  padding: var(--space-2);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+  text-align: center;
+  border-right: 1px solid var(--c-line);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.calendarDay {
+  min-height: 5.5rem;
+  padding: var(--space-1) var(--space-2) var(--space-2);
+  border-right: 1px solid var(--c-line);
+  border-bottom: 1px solid var(--c-line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.calendarDayOutside .calendarDayNum {
+  opacity: 0.35;
+}
+
+.calendarDayInBlock {
+  background-color: var(--c-amber-tint);
+}
+
+.calendarDayToday .calendarDayNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--c-cream);
+  background-color: var(--c-slate);
+  border-radius: var(--radius-pill);
+}
+
+.calendarDayNum {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--c-text-secondary);
+  align-self: flex-start;
+}
+
+.daySession {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.1rem var(--space-1);
+  font-size: var(--text-label);
+  color: var(--c-ink);
+  text-decoration: none;
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.daySession:hover {
+  border-color: var(--c-slate);
+}
+
+.daySessionTitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dayDot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+.dayDotCompleted {
+  background-color: var(--c-ontrack);
+}
+
+.dayDotScheduled {
+  background-color: var(--c-slate);
+}
+
+.dayDotMissed {
+  background-color: var(--c-watch);
+}
+
+/* ── Blocks: list + edit ──────────────────────────────────────────── */
+
+.blockList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.blockRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.blockRow:last-child {
+  border-bottom: none;
+}
+
+.blockInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.blockTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.blockTitle {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.blockStatus {
+  padding: 0.1rem var(--space-2);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-text-secondary);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+}
+
+.blockStatusActive {
+  color: var(--c-navy);
+  background-color: var(--c-amber-tint);
+  border-color: var(--c-amber);
+}
+
+.blockFocus {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.blockMeta {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+}
+
+.blockEdit {
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+  padding: var(--space-2) var(--space-3);
+}
+
+.blockEdit[open] {
+  padding-bottom: var(--space-3);
+}
+
+.blockEditSummary {
+  cursor: pointer;
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-slate);
+}
+
+/* ── Sessions: trainer completion ─────────────────────────────────── */
+
+.trainerToggle {
+  margin: var(--space-2) 0 var(--space-4);
+}
+
+.trainerNote {
+  font-size: var(--text-label);
+  line-height: 1.5;
+  color: var(--c-text-tertiary);
+}
+
+/* ── Programme card ───────────────────────────────────────────────── */
+
+.programCard {
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.programTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--c-ink);
+}
+
+.programFocus {
+  margin-top: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.programMeta {
+  margin-top: var(--space-2);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+}
+
+/* ── Session lists (upcoming + history) ───────────────────────────── */
+
+.listsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 64rem) {
+  .listsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sessionList {
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.sessionListTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+  margin-bottom: var(--space-3);
+}
+
+.sessionRows {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sessionRow {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  align-items: center;
+  padding: var(--space-3);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+  text-decoration: none;
+  transition: background-color 120ms ease;
+}
+
+.sessionRow:hover {
+  background-color: var(--c-blue-tint);
+}
+
+.sessionRow:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+}
+
+.sessionDate {
+  grid-row: 1 / 3;
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-slate);
+}
+
+.sessionTitle {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.sessionCats {
+  grid-column: 2;
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+}
+
+.sessionCount {
+  grid-column: 3;
+  font-size: var(--text-label);
+  color: var(--c-text-secondary);
+  justify-self: end;
+}
+
+.scheduledChip {
+  justify-self: end;
+  padding: 0.1rem var(--space-2);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-text-secondary);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+}
+
+/* ── Session breakdown ────────────────────────────────────────────── */
+
+.breakdown {
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.breakdownHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.backLink {
+  font-size: var(--text-small);
+  color: var(--c-slate);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.breakdownTitle {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--c-ink);
+}
+
+.breakdownMeta {
+  margin-top: var(--space-1);
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.breakdownGrid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 64rem) {
+  .breakdownGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.categoryBlock {
+  margin-bottom: var(--space-4);
+}
+
+.categoryTitle {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+  margin-bottom: var(--space-2);
+}
+
+.exerciseRows {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.exerciseRow {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.exerciseRow:last-child {
+  border-bottom: none;
+}
+
+.exerciseMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.exerciseName {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.exercisePrescription {
+  font-size: var(--text-label);
+  color: var(--c-text-secondary);
+}
+
+.exerciseMuscles {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+}
+
+.doneMark {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--c-ontrack);
+  white-space: nowrap;
+}
+
+.pendingMark {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+  white-space: nowrap;
+}
+
+.bodyMapPanel {
+  padding: var(--space-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+/* ── Builder ──────────────────────────────────────────────────────── */
+
+.builder {
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.builderTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+  margin-bottom: var(--space-4);
+}
+
+.builderGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.builderForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+.builderFormTitle {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.builderFormNote {
+  font-size: var(--text-label);
+  line-height: 1.5;
+  color: var(--c-text-secondary);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.fieldLabel {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--c-ink);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: none;
+  border-color: var(--c-focus);
+  box-shadow: 0 0 0 3px var(--c-blue-tint);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.prescriptionRow {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.muscleFieldset {
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+  padding: var(--space-3);
+}
+
+.muscleGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.muscleCheck {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--c-text-action);
+}
+
+.formError {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-flag);
+  background-color: var(--c-flag-bg);
+  border-radius: var(--radius-roster);
+}
+
+.formSuccess {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-ontrack);
+  background-color: var(--c-ontrack-bg);
+  border-radius: var(--radius-roster);
+}
+
+.submit {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-navy);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.7;
+  cursor: default;
+}

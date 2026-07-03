@@ -2,6 +2,81 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-03 — Programmes split into four pages, calendar blocks, redrawn body figures
+
+**What:**
+- **The console programmes area is now four focused pages** (tab nav under the patient banner)
+  instead of one busy screen:
+  - **Exercise overview** (`/console/programs`): strength, cardiovascular and mobility trends
+    across completed sessions (total weight moved and active minutes per session, sparkline,
+    change since the start), plus an adherence card (completed, missed, % done, coming up).
+    Sessions with no weighted or timed work in a category do not drag that trend to zero.
+  - **Blocks** (`/console/programs/blocks`): a month calendar (Monday weeks, prev/next
+    navigation) of every session with status dots, today ringed and the active block's span
+    tinted; below it, every block with an edit form (title, focus, start date, status) for the
+    CEP via a new audited `updateProgram` action. Setting a block active archives the others.
+  - **Sessions** (`/console/programs/sessions`): the upcoming/completed lists and the full
+    breakdown as before, and **CEPs and physios can now mark session parts done for the
+    client** (for sessions they take together); the audit trail records who, and consultants
+    stay read-only.
+  - **Planning** (`/console/programs/planning`): start a block, add sessions, put exercises
+    into any upcoming session (new session picker), grow the library. CEP/admin only.
+- UI language shifted from "programme" to **"block"** on the console (DB tables unchanged).
+- **Body figures redrawn as anatomical line art**: bezier-authored front/back figures
+  (300 x 640) with every muscle compartment outlined (MuscleWiki style), highlighted groups
+  filled amber (worked directly) or slate (also involved), and the female variant derived
+  from a piecewise proportional transform. Both surfaces get the new figures automatically.
+
+**Verified live:** all four tabs render for the CEP with real data (strength 2040 kg, up 13%);
+calendar shows July 2026 with the block span highlighted and a builder-added session picked up;
+planning forms present with the session picker; the client session page renders the new figures
+on mobile and category completion still works both ways.
+
+**Migration implication:** none (no schema change). Front-end and server actions only.
+
+## 2026-07-03 — Exercise programmes, body map, community search + team requests
+
+**What:**
+- **Exercise programmes** (`src/features/programs/`, `/console/programs`, `/app/program`):
+  a shared exercise library (28 seeded exercises across cardiovascular, resistance and mobility,
+  each tagged with primary/secondary muscle groups), per-client programmes made of dated sessions,
+  and prescriptions (sets, reps, weight, minutes, distance, notes). The whole care team views a
+  client's programme; **building is the CEP's capability** (and admin): add exercises to the
+  library, start a programme (archives the previous one), add sessions, add exercises to a
+  session. The console shows an upcoming/history dashboard; clicking a session opens the full
+  breakdown (per-category exercises, prescription, muscles worked).
+- **Body map** (`src/components/ui/BodyMap.tsx`): MuscleWiki-style front + back SVG figures,
+  male or female per client (`clients.body_map`, Beatrice Cole seeded female), muscles worked
+  highlighted (amber = worked directly, slate = also involved) with a text legend, so colour is
+  never the only signal.
+- **Client programme surface**: "Your programme" (next up, coming up, what you have done) and a
+  session page where the client marks **each part done separately** (cardiovascular, resistance,
+  mobility); the session completes when every part is done, reopening is one tap and guilt-free.
+  A skipped session reads as neutral ("Skipped, rest protects progress too") — no red on the
+  client app, ever.
+- **Community search + team requests** (`src/features/search/`, `/console/search`, search on
+  `/app/community`): name search over directory-safe fields only (name, role, discipline; no MRN,
+  no diagnosis). Clients ask members to join their community; members invite clients into their
+  care or invite fellow members to a client's team. Accept/decline/withdraw flows with a full
+  audit trail. **Consent stays the client's alone**: a client's own request or acceptance grants
+  consent; a member-to-member acceptance joins with sharing paused (`consent_at` null) until the
+  client turns it on in The community.
+- Demo seed: Michael Mercer gets "Rebuild strength, block 3" (17 sessions, 8 June to 15 July
+  2026, one deliberately missed) built by Daniel Ross (`supabase/seed_demo_programs.sql`).
+
+**Verified live (real DB, both surfaces):** CEP sees the dashboard and session breakdown with the
+body map; client marked mobility done on today's session (audited `session_part.completed`);
+client search shows "In your community" for existing team; Dr Priya Sharma invited Daniel Ross to
+Leo Yates's team, Daniel accepted, and the care_team row landed with `consent_at` null — Leo does
+not appear in Daniel's roster until Leo enables sharing. Typecheck, lint and build green; Supabase
+security advisor shows no new findings beyond the intentional SECURITY DEFINER RPC warnings.
+
+**Migration implication:** migrations `0011` (enums, `exercises`, `programs`, `program_sessions`,
+`session_exercises`, `team_requests`, `clients.body_map`, RLS deny-by-default,
+`search_directory()`), `0012` (exercise library seed) and `0013` (`my_team_requests()`) applied
+to the live project and mirrored in `supabase/migrations/`. `database.types.ts` regenerated.
+No secret or DNS changes.
+
 ## 2026-07-03 — Domain live, DPA signed
 
 **What:** Oliver removed the two Namecheap parking DNS records (A @ apex, CNAME `www`) from the

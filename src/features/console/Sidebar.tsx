@@ -8,6 +8,7 @@ import type { RosterEntry } from "./data";
 import styles from "./sidebar.module.css";
 
 const COLLAPSE_KEY = "engela.console.sidebar.collapsed";
+const MOBILE_QUERY = "(max-width: 56rem)";
 
 function initials(name: string): string {
   return name
@@ -28,16 +29,26 @@ export function Sidebar({
   viewerName,
   selectedId,
   activeNav,
+  rosterBasePath = "/console",
 }: {
   roster: RosterEntry[];
   viewerName: string;
   selectedId?: string;
-  activeNav: "review" | "account";
+  activeNav: "review" | "programs" | "search" | "account";
+  /** Where a roster click lands: the review (default) or the programmes page. */
+  rosterBasePath?: string;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
+
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
   }, []);
 
   const toggle = () => {
@@ -47,11 +58,15 @@ export function Sidebar({
     });
   };
 
+  // The collapse toggle is a desktop affordance: below the breakpoint the
+  // rail is always a full horizontal top bar, whatever the stored preference.
+  const effectiveCollapsed = collapsed && !isMobile;
+
   return (
-    <div className={`${styles.holder} ${collapsed ? styles.holderCollapsed : ""}`}>
-      <aside className={`${styles.rail} ${collapsed ? styles.railCollapsed : ""}`}>
+    <div className={`${styles.holder} ${effectiveCollapsed ? styles.holderCollapsed : ""}`}>
+      <aside className={`${styles.rail} ${effectiveCollapsed ? styles.railCollapsed : ""}`}>
       <div className={styles.top}>
-        {!collapsed ? (
+        {!effectiveCollapsed ? (
           <p className={styles.wordmark}>
             <span className={styles.wordmarkSerif}>Engela</span>
             <span className={styles.wordmarkSans}>HEALTH</span>
@@ -80,7 +95,25 @@ export function Sidebar({
           <span className={styles.navIcon} aria-hidden="true">
             ▦
           </span>
-          {!collapsed ? <span>Weekly review</span> : null}
+          {!effectiveCollapsed ? <span>Weekly review</span> : null}
+        </Link>
+        <Link
+          href="/console/programs"
+          className={`${styles.navLink} ${activeNav === "programs" ? styles.navLinkActive : ""}`}
+        >
+          <span className={styles.navIcon} aria-hidden="true">
+            ▷
+          </span>
+          {!effectiveCollapsed ? <span>Programmes</span> : null}
+        </Link>
+        <Link
+          href="/console/search"
+          className={`${styles.navLink} ${activeNav === "search" ? styles.navLinkActive : ""}`}
+        >
+          <span className={styles.navIcon} aria-hidden="true">
+            ⌕
+          </span>
+          {!effectiveCollapsed ? <span>Find people</span> : null}
         </Link>
         <Link
           href="/console/account"
@@ -89,23 +122,23 @@ export function Sidebar({
           <span className={styles.navIcon} aria-hidden="true">
             ◍
           </span>
-          {!collapsed ? <span>My account</span> : null}
+          {!effectiveCollapsed ? <span>My account</span> : null}
         </Link>
       </nav>
 
-      <p className={styles.railHeading}>{collapsed ? "•••" : "This week"}</p>
+      <p className={styles.railHeading}>{effectiveCollapsed ? "•••" : "This week"}</p>
       <nav className={styles.rosterList} aria-label="Patients">
         {roster.map((entry) => {
           const selected = entry.clientId === selectedId;
           return (
             <Link
               key={entry.clientId}
-              href={`/console?patient=${entry.clientId}`}
+              href={`${rosterBasePath}?patient=${entry.clientId}`}
               className={`${styles.rosterRow} ${selected ? styles.rosterRowSelected : ""}`}
               aria-current={selected ? "page" : undefined}
               title={`${entry.fullName} · ${entry.mrn}`}
             >
-              {collapsed ? (
+              {effectiveCollapsed ? (
                 <span className={styles.avatar}>
                   {entry.reviewStatus === "flag" ? (
                     <span className={styles.flagDot} aria-label="Flagged" />
@@ -137,10 +170,10 @@ export function Sidebar({
       </nav>
 
       <div className={styles.footer}>
-        {!collapsed ? <p className={styles.viewer}>{viewerName}</p> : null}
+        {!effectiveCollapsed ? <p className={styles.viewer}>{viewerName}</p> : null}
         <form action={signOut}>
           <button className={styles.signOut} type="submit" title="Sign out">
-            {collapsed ? "⎋" : "Sign out"}
+            {effectiveCollapsed ? "⎋" : "Sign out"}
           </button>
         </form>
       </div>

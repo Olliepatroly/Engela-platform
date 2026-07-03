@@ -1,0 +1,331 @@
+/* Your programme — client app surface. Phone-first, softer radii, warm copy.
+   No red, no flags: a skipped session is neutral, never alarming. */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.programIntro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.programTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--c-ink);
+}
+
+.programFocus {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--c-text-secondary);
+}
+
+.programBy {
+  font-size: var(--text-small);
+  color: var(--c-text-tertiary);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+  margin-bottom: var(--space-3);
+}
+
+/* Next session hero card */
+.nextCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  background-color: var(--c-navy);
+  border-radius: var(--radius-client-lg);
+  text-decoration: none;
+}
+
+.nextDate {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-amber);
+}
+
+.nextTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--c-cream);
+}
+
+.nextMeta {
+  font-size: var(--text-small);
+  color: var(--c-blue-tint);
+}
+
+/* Session cards */
+.sessionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-3);
+}
+
+.sessionCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+  text-decoration: none;
+}
+
+.sessionCard:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.sessionCardDate {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+}
+
+.sessionCardTitle {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.sessionCardMeta {
+  font-size: var(--text-label);
+  color: var(--c-text-secondary);
+}
+
+.sessionDone {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ontrack);
+}
+
+.sessionSkipped {
+  font-size: var(--text-small);
+  color: var(--c-text-tertiary);
+}
+
+.sessionPlanned {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+/* Session detail */
+.sessionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sessionHeaderMeta {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.sessionHeaderDone {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--c-ontrack);
+}
+
+.sessionHeaderSkipped {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.categoryCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client-lg);
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.categoryTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.exerciseList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.exerciseItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.exerciseItem:last-child {
+  border-bottom: none;
+}
+
+.exerciseTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.exerciseName {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.exerciseNameDone {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--c-text-tertiary);
+  text-decoration: line-through;
+  text-decoration-color: var(--c-line);
+}
+
+.exercisePrescription {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.exerciseNotes {
+  font-size: var(--text-small);
+  color: var(--c-text-tertiary);
+}
+
+.howTo {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.howTo summary {
+  cursor: pointer;
+  color: var(--c-slate);
+  font-weight: 600;
+}
+
+.howTo p {
+  margin-top: var(--space-2);
+  line-height: var(--leading-small);
+}
+
+/* Category completion */
+.toggleForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.completeBtn {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-navy);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.reopenBtn {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-slate);
+  background: none;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.completeBtn:disabled,
+.reopenBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.toggleError {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-watch);
+  background-color: var(--c-watch-surface);
+  border-radius: var(--radius-client);
+}
+
+.toggleSuccess {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-ontrack);
+  background-color: var(--c-ontrack-bg);
+  border-radius: var(--radius-client);
+}
+
+.bodyMapCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client-lg);
+}
+
+/* Empty states */
+.emptyCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-8);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client-lg);
+}
+
+.emptyHeading {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--c-ink);
+}
+
+.emptyNote {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
+}
+
+.disclaimer {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-tertiary);
+}
