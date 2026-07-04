@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_requests: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          path: string
+          requested_role: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          path: string
+          requested_role?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          path?: string
+          requested_role?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       actions_flags: {
         Row: {
           client_visible: boolean
@@ -300,6 +330,69 @@ export type Database = {
           {
             foreignKeyName: "exercises_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_profile: string | null
+          created_at: string
+          diagnosis: string | null
+          email: string
+          expires_at: string
+          full_name: string
+          id: string
+          invited_by: string
+          mrn: string | null
+          revoked_at: string | null
+          role: Database["public"]["Enums"]["role"]
+          token_hash: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_profile?: string | null
+          created_at?: string
+          diagnosis?: string | null
+          email: string
+          expires_at: string
+          full_name: string
+          id?: string
+          invited_by: string
+          mrn?: string | null
+          revoked_at?: string | null
+          role: Database["public"]["Enums"]["role"]
+          token_hash: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_profile?: string | null
+          created_at?: string
+          diagnosis?: string | null
+          email?: string
+          expires_at?: string
+          full_name?: string
+          id?: string
+          invited_by?: string
+          mrn?: string | null
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["role"]
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invites_accepted_profile_fkey"
+            columns: ["accepted_profile"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invites_invited_by_fkey"
+            columns: ["invited_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

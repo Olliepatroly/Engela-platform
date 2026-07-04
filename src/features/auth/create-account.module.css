@@ -116,3 +116,11 @@
   background-color: var(--c-ontrack-bg);
   border-radius: var(--radius-card);
 }
+
+.error {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-small);
+  color: var(--c-flag);
+  background-color: var(--c-flag-bg);
+  border-radius: var(--radius-roster);
+}
