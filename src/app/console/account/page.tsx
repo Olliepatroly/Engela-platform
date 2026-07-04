@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Sidebar, getRoster } from "@/features/console";
-import { NameForm, ClinicianForm, PasswordForm, getAccountInfo } from "@/features/account";
+import {
+  NameForm,
+  ClinicianForm,
+  PasswordForm,
+  MfaSettings,
+  getAccountInfo,
+} from "@/features/account";
 import consoleStyles from "@/features/console/console.module.css";
 import styles from "@/features/account/account.module.css";
 
@@ -35,6 +41,7 @@ export default async function ConsoleAccountPage() {
           </p>
           <NameForm fullName={account.fullName} />
           <ClinicianForm discipline={account.discipline} registrationNo={account.registrationNo} />
+          <MfaSettings />
           <PasswordForm />
         </div>
       </main>

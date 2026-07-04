@@ -13,12 +13,13 @@ import { homePathForRole, isClinical } from "@/lib/roles";
  * usability gate that keeps people on the right surface. Never rely on it alone.
  */
 export async function middleware(request: NextRequest) {
-  const { response, userId, role } = await updateSession(request);
+  const { response, userId, role, needsMfa } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
   const isConsole = pathname === "/console" || pathname.startsWith("/console/");
   const isClientApp = pathname === "/app" || pathname.startsWith("/app/");
   const isSignIn = pathname === "/signin";
+  const isMfaStep = pathname === "/signin/mfa";
 
   // Unauthenticated → protected route: redirect to sign-in, preserving intent.
   if (!userId && (isConsole || isClientApp)) {
@@ -29,6 +30,22 @@ export async function middleware(request: NextRequest) {
   }
 
   if (userId) {
+    // Accounts with two-step verification finish stepping up before any
+    // surface. Sessions still at assurance level 1 are held at the code screen.
+    if (needsMfa && (isConsole || isClientApp)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/signin/mfa";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    // Fully stepped up (or no factor): the code screen has nothing to ask.
+    if (isMfaStep && !needsMfa) {
+      const url = request.nextUrl.clone();
+      url.pathname = homePathForRole(role);
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+
     // Already signed in and sitting on /signin → send to their surface.
     if (isSignIn) {
       const url = request.nextUrl.clone();

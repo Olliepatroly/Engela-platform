@@ -2,12 +2,18 @@
 
 import { useActionState } from "react";
 import { signIn, type SignInState } from "./actions";
+import { MfaChallengeForm } from "./MfaChallengeForm";
 import styles from "./signin-form.module.css";
 
 const initialState: SignInState = { error: null };
 
 export function SignInForm() {
   const [state, formAction, pending] = useActionState(signIn, initialState);
+
+  // Password accepted; the account has two-step verification, so ask for the code.
+  if (state.mfaRequired) {
+    return <MfaChallengeForm />;
+  }
 
   return (
     <form className={styles.form} action={formAction} noValidate>

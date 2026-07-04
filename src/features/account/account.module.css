@@ -226,3 +226,30 @@
 .backLink:hover {
   text-decoration: underline;
 }
+
+.mfaOn {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-ontrack);
+}
+
+.mfaEnrol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mfaQr {
+  width: 11rem;
+  height: 11rem;
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+  padding: var(--space-2);
+}
+
+.mfaSecret {
+  font-size: var(--text-label);
+  color: var(--c-text-secondary);
+  overflow-wrap: anywhere;
+}

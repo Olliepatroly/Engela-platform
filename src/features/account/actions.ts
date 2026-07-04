@@ -119,6 +119,25 @@ export async function changePassword(
 }
 
 /**
+ * Audit a two-step verification change. The enrolment itself happens in the
+ * browser against Supabase Auth; this only writes the governance record for
+ * the caller's own account.
+ */
+export async function recordMfaEvent(event: "enrolled" | "unenrolled"): Promise<void> {
+  const user = await requireUser();
+  if (!user) return;
+
+  const admin = getAdminClient();
+  await admin.from("audit_log").insert({
+    actor_id: user.id,
+    action: event === "enrolled" ? "mfa.enrolled" : "mfa.unenrolled",
+    entity: "profiles",
+    entity_id: user.id,
+    meta: {},
+  });
+}
+
+/**
  * Grant or withdraw the caller's consent for one care-team clinician.
  * Withdrawing consent removes that clinician's access to the record
  * immediately (enforced in the database, not just the interface).
