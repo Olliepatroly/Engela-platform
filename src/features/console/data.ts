@@ -69,6 +69,7 @@ export type ActionVM = {
 };
 
 export type ReviewVM = {
+  reviewId: string;
   patient: {
     clientId: string;
     fullName: string;
@@ -118,6 +119,97 @@ function targetText(targetDef: unknown): string {
   if (t.kind === "ceiling") return `Target at or below ${t.value}`;
   if (t.kind === "range") return `Target ${t.min} to ${t.max}`;
   return "";
+}
+
+export type AuditEntryVM = {
+  id: string;
+  at: string;
+  actorName: string;
+  action: string;
+  entity: string;
+  clientName: string | null;
+  detail: string;
+};
+
+/** Human-readable labels for audit actions; unknown codes fall back to the raw code. */
+const AUDIT_ACTION_LABELS: Record<string, string> = {
+  "weekly_review.signed_off": "Weekly review signed off",
+  "metric_reading.recorded": "Reading recorded",
+  "metric_reading.corrected": "Reading corrected",
+  "safety_flag.raised": "Safety flag raised",
+  "action.added": "Action added",
+  "metric_goal.set": "Goal set",
+  "consent.granted": "Consent granted",
+  "consent.withdrawn": "Consent withdrawn",
+  "profile.name_updated": "Name updated",
+  "clinician.details_updated": "Professional details updated",
+  "session_part.completed": "Session part completed",
+  "session_part.reopened": "Session part reopened",
+  "team_request.sent": "Team request sent",
+  "team_request.accepted": "Team request accepted",
+  "team_request.declined": "Team request declined",
+  "team_request.cancelled": "Team request withdrawn",
+  "program.updated": "Block updated",
+  "program.created": "Block started",
+  "program_session.added": "Session added",
+  "session_exercise.added": "Exercise added to a session",
+  "exercise.added": "Exercise added to the library",
+  "invite.created": "Invite sent",
+  "invite.revoked": "Invite revoked",
+  "invite.accepted": "Invite accepted",
+  "account_request.created": "Account requested",
+  "account_request.handled": "Account request handled",
+  "mfa.enrolled": "Two-step verification turned on",
+  "mfa.unenrolled": "Two-step verification turned off",
+};
+
+function auditDetail(meta: Record<string, unknown>): string {
+  const parts: string[] = [];
+  if (typeof meta.metric_code === "string") parts.push(meta.metric_code.replace(/_/g, " "));
+  if (meta.value != null) parts.push(`value ${meta.value}`);
+  if (meta.week_no != null) parts.push(`week ${meta.week_no}`);
+  if (typeof meta.category === "string") parts.push(meta.category);
+  if (typeof meta.email === "string") parts.push(meta.email);
+  if (typeof meta.role === "string") parts.push(meta.role);
+  if (meta.client_visible === true) parts.push("shared with client");
+  return parts.join(" · ");
+}
+
+/**
+ * The append-only audit trail, newest first, for the read-only governance
+ * screen. RLS scopes this to the clinical team (audit_log_select_clinical);
+ * client names resolve only for clients the viewer can see.
+ */
+export async function getAuditTrail(limit = 200): Promise<AuditEntryVM[]> {
+  const supabase = await createClient();
+  const [{ data: rows }, { data: clients }] = await Promise.all([
+    supabase
+      .from("audit_log")
+      .select("id, at, action, entity, meta, profiles(full_name)")
+      .order("at", { ascending: false })
+      .limit(limit),
+    supabase
+      .from("clients")
+      .select("id, profiles!clients_profile_id_fkey(full_name)"),
+  ]);
+
+  const clientNames = new Map(
+    (clients ?? []).map((c) => [c.id, c.profiles?.full_name ?? "Unknown"]),
+  );
+
+  return (rows ?? []).map((row) => {
+    const meta = (row.meta ?? {}) as Record<string, unknown>;
+    const clientId = typeof meta.client_id === "string" ? meta.client_id : null;
+    return {
+      id: row.id,
+      at: row.at,
+      actorName: row.profiles?.full_name ?? "System",
+      action: AUDIT_ACTION_LABELS[row.action] ?? row.action.replace(/[._]/g, " "),
+      entity: row.entity,
+      clientName: clientId ? (clientNames.get(clientId) ?? "A client outside your care team") : null,
+      detail: auditDetail(meta),
+    };
+  });
 }
 
 /** Metric options for the Add data form, in catalog display order. */
@@ -245,6 +337,7 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
     }));
 
   return {
+    reviewId: data.id,
     patient: {
       clientId: data.clients.id,
       fullName: data.clients.profiles?.full_name ?? "Unknown",

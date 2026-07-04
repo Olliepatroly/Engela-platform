@@ -25,6 +25,14 @@ const actionSchema = z.object({
   severity: z.string().trim().optional(),
 });
 
+const signOffSchema = z.object({
+  clientId: z.string().uuid(),
+  reviewId: z.string().uuid(),
+  confirmed: z.literal(true, {
+    errorMap: () => ({ message: "Tick the confirmation before signing off." }),
+  }),
+});
+
 const goalSchema = z
   .object({
     clientId: z.string().uuid(),
@@ -374,4 +382,65 @@ export async function setMetricGoal(_prev: EntryState, formData: FormData): Prom
 
   revalidatePath("/console");
   return { error: null, success: `Goal updated for ${metric.name}. Scores reassessed.` };
+}
+
+/**
+ * Audited sign-off of a weekly review (Phase 2 gate). Consultant or admin
+ * only: signing off records who reviewed the week and when, on the review
+ * itself and in the append-only audit trail. A signed review stays signed;
+ * there is no un-sign.
+ */
+export async function signOffReview(_prev: EntryState, formData: FormData): Promise<EntryState> {
+  const parsed = signOffSchema.safeParse({
+    clientId: formData.get("clientId"),
+    reviewId: formData.get("reviewId"),
+    confirmed: formData.get("confirmed") === "on" ? true : undefined,
+  });
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Check the sign-off details.",
+      success: null,
+    };
+  }
+  const { clientId, reviewId } = parsed.data;
+
+  const user = await requireClinicalAccess(clientId);
+  if (!user) return { error: "You do not have access to this client.", success: null };
+
+  const role = user.app_metadata?.role;
+  if (role !== "consultant" && role !== "admin") {
+    return { error: "Only the consultant signs off a weekly review.", success: null };
+  }
+
+  const admin = getAdminClient();
+  const { data: review } = await admin
+    .from("weekly_reviews")
+    .select("id, client_id, week_no, signed_at")
+    .eq("id", reviewId)
+    .maybeSingle();
+  if (!review || review.client_id !== clientId) {
+    return { error: "That review could not be found.", success: null };
+  }
+  if (review.signed_at != null) {
+    return { error: "This review is already signed off.", success: null };
+  }
+
+  const signedAt = new Date().toISOString();
+  const { error } = await admin
+    .from("weekly_reviews")
+    .update({ signed_by: user.id, signed_at: signedAt })
+    .eq("id", reviewId)
+    .is("signed_at", null);
+  if (error) return { error: "Could not record the sign-off. Try again.", success: null };
+
+  await admin.from("audit_log").insert({
+    actor_id: user.id,
+    action: "weekly_review.signed_off",
+    entity: "weekly_reviews",
+    entity_id: reviewId,
+    meta: { client_id: clientId, week_no: review.week_no, signed_at: signedAt },
+  });
+
+  revalidatePath("/console");
+  return { error: null, success: `Week ${review.week_no} signed off.` };
 }

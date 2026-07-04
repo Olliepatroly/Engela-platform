@@ -27,6 +27,9 @@ export default async function ConsolePage({
   } = await supabase.auth.getUser();
   const viewerName =
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "Clinical team";
+  // Sign-off is the consultant's act; admin can stand in.
+  const viewerRole = user?.app_metadata?.role;
+  const viewerCanSignOff = viewerRole === "consultant" || viewerRole === "admin";
 
   const roster = await getRoster();
   const selectedId = patient ?? roster[0]?.clientId;
@@ -40,6 +43,7 @@ export default async function ConsolePage({
       roster={roster}
       review={review}
       viewerName={viewerName}
+      viewerCanSignOff={viewerCanSignOff}
       metricOptions={metricOptions}
     />
   );
