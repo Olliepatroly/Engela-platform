@@ -107,6 +107,40 @@ describe.skipIf(!configured)("RLS on the live project", () => {
     await daniel.auth.signOut();
   });
 
+  it("the audit trail hides events about clients outside the consented care team", async () => {
+    // A clinician's audit view is scoped (0015): own actions, plus rows about
+    // consented care-team clients. Daniel (CEP) has Michael consented and Leo
+    // paused, so no Leo-scoped audit row should ever reach him.
+    const daniel = await signedInClient("demo.cep@engelahealth.com");
+    const {
+      data: { user },
+    } = await daniel.auth.getUser();
+    const { data: visible } = await daniel.from("clients").select("id");
+    const visibleIds = new Set((visible ?? []).map((c) => c.id));
+
+    const { data: rows } = await daniel
+      .from("audit_log")
+      .select("actor_id, entity, entity_id, meta")
+      .limit(1000);
+
+    for (const row of rows ?? []) {
+      const meta = (row.meta ?? {}) as Record<string, unknown>;
+      const clientId =
+        typeof meta.client_id === "string"
+          ? meta.client_id
+          : row.entity === "care_team"
+            ? row.entity_id
+            : null;
+      if (clientId && row.actor_id !== user?.id) {
+        expect(
+          visibleIds.has(clientId),
+          "audit row references a client Daniel cannot see",
+        ).toBe(true);
+      }
+    }
+    await daniel.auth.signOut();
+  });
+
   it("a client cannot write to clinical tables", async () => {
     const michael = await signedInClient("demo.client@engelahealth.com");
     const { error } = await michael

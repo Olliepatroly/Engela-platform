@@ -124,9 +124,11 @@ function targetText(targetDef: unknown): string {
 export type AuditEntryVM = {
   id: string;
   at: string;
+  actorId: string | null;
   actorName: string;
   action: string;
   entity: string;
+  clientId: string | null;
   clientName: string | null;
   detail: string;
 };
@@ -161,6 +163,7 @@ const AUDIT_ACTION_LABELS: Record<string, string> = {
   "account_request.handled": "Account request handled",
   "mfa.enrolled": "Two-step verification turned on",
   "mfa.unenrolled": "Two-step verification turned off",
+  "audit.exported": "Audit trail exported",
 };
 
 function auditDetail(meta: Record<string, unknown>): string {
@@ -180,33 +183,44 @@ function auditDetail(meta: Record<string, unknown>): string {
  * screen. RLS scopes this to the clinical team (audit_log_select_clinical);
  * client names resolve only for clients the viewer can see.
  */
-export async function getAuditTrail(limit = 200): Promise<AuditEntryVM[]> {
+export async function getAuditTrail(limit = 1000): Promise<AuditEntryVM[]> {
   const supabase = await createClient();
+  // RLS (audit_log_select_clinical) already scopes these rows to the viewer:
+  // admins see everything, everyone else sees their own actions plus rows about
+  // clients on their care team with consent granted. Client-scoped rows about
+  // anyone else never arrive here, so there is nothing to filter out below.
   const [{ data: rows }, { data: clients }] = await Promise.all([
     supabase
       .from("audit_log")
-      .select("id, at, action, entity, meta, profiles(full_name)")
+      .select("id, at, actor_id, action, entity, entity_id, meta, profiles(full_name)")
       .order("at", { ascending: false })
       .limit(limit),
-    supabase
-      .from("clients")
-      .select("id, profiles!clients_profile_id_fkey(full_name)"),
+    supabase.from("clients").select("id, profiles!clients_profile_id_fkey(full_name)"),
   ]);
 
   const clientNames = new Map(
     (clients ?? []).map((c) => [c.id, c.profiles?.full_name ?? "Unknown"]),
   );
 
+  /** The client a row concerns: meta.client_id, or the id itself for consent events. */
+  function rowClientId(entity: string, entityId: string | null, meta: Record<string, unknown>) {
+    if (typeof meta.client_id === "string") return meta.client_id;
+    if (entity === "care_team" && entityId) return entityId;
+    return null;
+  }
+
   return (rows ?? []).map((row) => {
     const meta = (row.meta ?? {}) as Record<string, unknown>;
-    const clientId = typeof meta.client_id === "string" ? meta.client_id : null;
+    const clientId = rowClientId(row.entity, row.entity_id, meta);
     return {
       id: row.id,
       at: row.at,
+      actorId: row.actor_id,
       actorName: row.profiles?.full_name ?? "System",
       action: AUDIT_ACTION_LABELS[row.action] ?? row.action.replace(/[._]/g, " "),
       entity: row.entity,
-      clientName: clientId ? (clientNames.get(clientId) ?? "A client outside your care team") : null,
+      clientId: clientId && clientNames.has(clientId) ? clientId : null,
+      clientName: clientId ? (clientNames.get(clientId) ?? null) : null,
       detail: auditDetail(meta),
     };
   });

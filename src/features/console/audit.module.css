@@ -16,6 +16,82 @@
   max-width: 44rem;
 }
 
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 9rem;
+  flex: 1 1 9rem;
+}
+
+.filterLabel {
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--c-text-secondary);
+}
+
+.filterInput {
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--c-ink);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-input, 0.5rem);
+}
+
+.clearButton {
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--c-primary);
+  background: none;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.resultCount {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.exportButton {
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-navy);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.exportButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .tableWrap {
   background-color: var(--c-surface);
   border: 1px solid var(--c-line);
