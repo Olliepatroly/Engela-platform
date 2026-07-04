@@ -4,8 +4,14 @@ import { z } from "zod";
 /*
  * Server-side environment validation for the clinical platform.
  * Server-only — never import in Client Components or browser code.
- * Integration keys are optional in this Phase 0 scaffold; each is tightened to
- * required when the corresponding integration is wired up (invites in Phase 2).
+ *
+ * IMPORTANT (Cloudflare Workers): the environment MUST be read inside a request,
+ * never at module scope. On Workers, secrets and vars are bound per-request and
+ * are absent at global/module-evaluation time. Validating at import would fail
+ * spuriously and 500 every route that imports this file. This is the same
+ * reason admin.ts and server.ts read process.env inside their handlers. The
+ * `env` proxy below defers the parse to first property access, which always
+ * happens within a request.
  */
 
 // Empty strings in .env files are parsed as "" not undefined — treat them as absent.
@@ -23,26 +29,39 @@ const schema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_JWT_SECRET: opt,
 
-  // Resend — transactional email for invites (tighten to required in Phase 2).
+  // Resend — transactional email for invites (optional until invites go live).
   RESEND_API_KEY: opt,
   RESEND_FROM_EMAIL: z.string().email().default("team@engelahealth.com"),
 });
 
-// Cloudflare Workers secrets are injected at runtime, not during `next build`.
-const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+export type Env = z.infer<typeof schema>;
 
-const parsed = schema.safeParse(process.env);
+let cached: Env | null = null;
 
-if (!parsed.success) {
-  if (isBuildPhase) {
-    console.warn(
-      "⚠ Runtime secrets unavailable during build (expected for Cloudflare Workers):",
-      Object.keys(parsed.error.flatten().fieldErrors).join(", "),
-    );
-  } else {
-    console.error("❌ Invalid environment variables:", parsed.error.flatten().fieldErrors);
-    throw new Error("Invalid environment variables — check server logs for details.");
+/**
+ * Validate and cache the environment on first use. Runs lazily so it only ever
+ * executes inside a request, where process.env is populated. On a genuine
+ * misconfiguration it logs and falls back to the raw environment rather than
+ * throwing, so one bad value cannot take a route down.
+ */
+function resolveEnv(): Env {
+  if (cached) return cached;
+  const parsed = schema.safeParse(process.env);
+  if (!parsed.success) {
+    console.error("Invalid environment variables:", parsed.error.flatten().fieldErrors);
+    return process.env as unknown as Env;
   }
+  cached = parsed.data;
+  return cached;
 }
 
-export const env = (parsed.data ?? process.env) as z.infer<typeof schema>;
+/**
+ * Server-only, lazily-validated environment. Access properties inside request
+ * handlers only (server actions, route handlers, server components at request
+ * time) — never at module scope.
+ */
+export const env = new Proxy({} as Env, {
+  get(_target, prop: string | symbol) {
+    return resolveEnv()[prop as keyof Env];
+  },
+});
