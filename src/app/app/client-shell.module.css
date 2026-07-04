@@ -1,0 +1,132 @@
+/* Client app shell — a shared top header (wordmark + Sign out) and a fixed
+   bottom tab bar around every /app route. Phone-first, calm by design. */
+
+.shell {
+  position: relative;
+  max-width: 27rem;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--c-cream);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4) 0;
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.mark {
+  color: var(--c-amber);
+  flex-shrink: 0;
+}
+
+.wordmarkSerif {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--c-amber);
+}
+
+.wordmarkSans {
+  font-weight: 700;
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  color: var(--c-slate);
+}
+
+.signOut {
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-secondary);
+  background: none;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.signOut:hover {
+  border-color: var(--c-slate);
+}
+
+/* Page content. The bottom padding clears the fixed tab bar (its height plus
+   the device safe-area) so the last element is never hidden behind it. */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--space-4)
+    calc(var(--space-12) + 3.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ── Bottom tab bar ─────────────────────────────────────────────────── */
+
+.tabBar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 27rem;
+  z-index: var(--z-sticky);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background-color: var(--c-surface);
+  border-top: 1px solid var(--c-line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-1);
+  text-decoration: none;
+  color: var(--c-text-tertiary);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: -2px;
+}
+
+/* Active state is never colour alone: navy label + a visible amber dot. */
+.tabDot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background-color: var(--c-amber);
+  opacity: 0;
+}
+
+.tab[data-active="true"] {
+  color: var(--c-ink);
+}
+
+.tab[data-active="true"] .tabDot {
+  opacity: 1;
+}
+
+.tabLabel {
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

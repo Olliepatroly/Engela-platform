@@ -2,6 +2,46 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-04 — Phase 3 (client depth): bottom nav bar + expandable pillars
+
+**What:**
+- **Fixed bottom tab bar for the client app.** The section navigation moves out of the inline
+  header links into a fixed bottom tab bar (phone-first) with the four current destinations:
+  Home, Programme, Community, Account. The active tab is navy (`--c-ink`) with a small amber
+  (`--c-amber`) dot and `aria-current="page"`; inactive tabs are muted grey (`--c-text-tertiary`).
+  Never colour alone. The bar is safe-area aware (`env(safe-area-inset-bottom)`) and page content
+  carries matching bottom padding so nothing is hidden behind it.
+- **Shared client-segment shell.** A new `src/app/app/layout.tsx` owns the top header (wordmark +
+  Sign out) and the bottom `<ClientTabBar>` across every `/app` route, so the four pages now render
+  only their content. Removed the per-page inline navs/headers (home `clientNav`; the
+  program/community/account/session-detail back-link headers). The session-detail page keeps a
+  single "← Your programme" back-link (a sub-view of the Programme tab, which stays active on it).
+- **Expandable / collapsible pillars on the client home.** The three pillars are now an accordion.
+  Collapsed, each shows its name, score and how far it has come; expanded, it reveals that pillar's
+  own metrics (Movement, Nutrition, Recovery and immunity). This replaces the separate flat "Your
+  numbers" section: the metrics move into their pillar. Default all collapsed; multiple may be open
+  at once. Each header is a `<button aria-expanded aria-controls>` with a rotating chevron.
+
+**Why:** Phase 3 "client depth" per `CLAUDE.md` §5, and two client-app design changes Oliver
+prioritised (bottom nav, expandable pillars) as specced in `docs/HANDOVER.md` §3a/§3b. Confirmed
+with Oliver: the home tab is labelled "Home"; pillars default to all collapsed.
+
+**Safety:** no backend change. The accordion is a pure client-side regroup of `home.metrics` by
+each metric's existing `pillar`; everything the client sees still comes only from the SECURITY
+DEFINER `client_home_payload()`. The estimate caveat and softened colour + dot + text status
+(a `flag` arrives pre-softened to `focus`, never red) carry through unchanged. Verified live as the
+demo client: Movement expands to its six metrics with "THIS WEEK'S FOCUS" (not FLAG) on the low
+activity metric and the estimate caveat on Stamina; the active tab is navy + amber dot with
+`aria-current`; all four tabs fit one row at 375px; every tab renders a single `<main>`.
+
+**Files:** `src/app/app/layout.tsx` (new), `src/app/app/ClientTabBar.tsx` (new),
+`src/app/app/client-shell.module.css` (new); `src/features/client-home/ClientPillars.tsx` (new),
+`ClientHomeView.tsx`, `client-home.module.css`; `src/app/app/page.tsx`,
+`src/app/app/program/page.tsx`, `src/app/app/program/[sessionId]/page.tsx`,
+`src/app/app/community/page.tsx`, `src/app/app/account/page.tsx`.
+
+**Migration/secret/DNS implications:** none. Frontend only; no schema, RPC or projection change.
+
 ## 2026-07-04 — Hotfix: lazy env validation (500 on invites + create-account in production)
 
 **What:** `src/lib/env.ts` now validates the environment lazily (memoised resolver behind a

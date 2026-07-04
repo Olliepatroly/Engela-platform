@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CommunityView, getAccountInfo, getMyCareTeam } from "@/features/account";
 import { ClientSearchView, getMyTeamRequests, searchDirectory } from "@/features/search";
@@ -33,19 +32,7 @@ export default async function CommunityPage({
   ]);
 
   return (
-    <main className={styles.clientMain}>
-      <header className={styles.clientHeader}>
-        <Link className={styles.backLink} href="/app">
-          ← This week
-        </Link>
-        <Link className={styles.backLink} href="/app/program">
-          Your programme
-        </Link>
-        <Link className={styles.backLink} href="/app/account">
-          Your account
-        </Link>
-      </header>
-
+    <>
       <div>
         <h1 className={styles.heading}>The community</h1>
         <p className={styles.subhead}>
@@ -62,6 +49,6 @@ export default async function CommunityPage({
         requests={requests}
         teamMemberIds={new Set(team.map((m) => m.clinician_id))}
       />
-    </main>
+    </>
   );
 }

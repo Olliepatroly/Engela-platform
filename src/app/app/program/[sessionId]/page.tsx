@@ -29,17 +29,12 @@ export default async function ClientSessionPage({
   if (!detail || detail.clientId !== own.clientId) notFound();
 
   return (
-    <main className={styles.clientMain}>
-      <header className={styles.clientHeader}>
-        <Link className={styles.backLink} href="/app/program">
-          ← Your programme
-        </Link>
-        <Link className={styles.backLink} href="/app">
-          This week
-        </Link>
-      </header>
+    <>
+      <Link className={styles.backLink} href="/app/program">
+        ← Your programme
+      </Link>
 
       <ClientSessionView detail={detail} figure={own.bodyMap} />
-    </main>
+    </>
   );
 }

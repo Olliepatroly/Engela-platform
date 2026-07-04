@@ -1,16 +1,13 @@
-import Link from "next/link";
-import { EngelaMark } from "@/components/ui";
-import { signOut } from "@/features/auth";
-import { ClientMetrics } from "./ClientMetrics";
+import { ClientPillars } from "./ClientPillars";
 import type { ClientHomeVM } from "./data";
 import styles from "./client-home.module.css";
 
-const PILLAR_LABELS: Record<string, string> = {
-  exercise: "Movement",
-  nutrition: "Nutrition",
-  immune: "Recovery and immunity",
-};
-
+/**
+ * Client app home — the calm, phone-first surface. The wordmark, Sign out and
+ * section navigation live in the client-segment layout; this renders only the
+ * content. All data comes from the client-safe projection: it NEVER shows a raw
+ * lab value, a disease marker or a red flag.
+ */
 export function ClientHomeView({ home }: { home: ClientHomeVM }) {
   const score = home.review?.composite_score ?? null;
   /* SVG ring: r=52, circumference ≈ 326.7; fill proportion = score / 10. */
@@ -18,32 +15,7 @@ export function ClientHomeView({ home }: { home: ClientHomeVM }) {
   const ringOffset = score != null ? ringCircumference * (1 - score / 10) : ringCircumference;
 
   return (
-    <main className={styles.main}>
-      <header className={styles.header}>
-        <p className={styles.wordmark}>
-          <EngelaMark className={styles.mark} size={1.1} />
-          <span className={styles.wordmarkSerif}>Engela</span>
-          <span className={styles.wordmarkSans}>HEALTH</span>
-        </p>
-        <form action={signOut}>
-          <button className={styles.signOut} type="submit">
-            Sign out
-          </button>
-        </form>
-      </header>
-
-      <nav className={styles.clientNav} aria-label="Your app">
-        <Link className={styles.accountLink} href="/app/program">
-          Programme
-        </Link>
-        <Link className={styles.accountLink} href="/app/community">
-          Community
-        </Link>
-        <Link className={styles.accountLink} href="/app/account">
-          Account
-        </Link>
-      </nav>
-
+    <>
       <section className={styles.hero}>
         <h1 className={styles.greeting}>Hello {home.client.first_name}</h1>
         <p className={styles.heroNote}>
@@ -78,19 +50,7 @@ export function ClientHomeView({ home }: { home: ClientHomeVM }) {
         </p>
       </section>
 
-      <section className={styles.pillars} aria-label="Your three pillars">
-        {home.pillars.map((pillar) => (
-          <div key={pillar.pillar} className={styles.pillarCard}>
-            <span className={styles.pillarScore}>{pillar.score.toFixed(1)}</span>
-            <span className={styles.pillarLabel}>{PILLAR_LABELS[pillar.pillar]}</span>
-            {pillar.baseline != null ? (
-              <span className={styles.pillarBaseline}>
-                up from {pillar.baseline.toFixed(1)} when you started
-              </span>
-            ) : null}
-          </div>
-        ))}
-      </section>
+      <ClientPillars pillars={home.pillars} metrics={home.metrics} />
 
       {home.actions.length > 0 ? (
         <section className={styles.focus} aria-label="This week's focus">
@@ -105,15 +65,10 @@ export function ClientHomeView({ home }: { home: ClientHomeVM }) {
         </section>
       ) : null}
 
-      <section className={styles.numbers} aria-label="Your numbers">
-        <h2 className={styles.sectionTitle}>Your numbers</h2>
-        <ClientMetrics metrics={home.metrics} />
-      </section>
-
       <p className={styles.disclaimer}>
         This is a rehabilitation monitoring tool. It supports your medical team; it does not
         replace clinical care. If you feel unwell, contact your care team as usual.
       </p>
-    </main>
+    </>
   );
 }

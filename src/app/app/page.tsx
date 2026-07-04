@@ -18,9 +18,9 @@ export default async function ClientAppPage() {
 
   if (!home) {
     return (
-      <main style={{ padding: "3rem 1.5rem", textAlign: "center" }}>
-        <p>Your programme is being set up. Check back soon, or contact your rehab lead.</p>
-      </main>
+      <p style={{ padding: "3rem 0", textAlign: "center" }}>
+        Your programme is being set up. Check back soon, or contact your rehab lead.
+      </p>
     );
   }
 
