@@ -64,18 +64,24 @@ export function ClientMetrics({ metrics }: { metrics: ClientMetric[] }) {
                   <StatusPill status={metric.status} label={CLIENT_STATUS_LABELS[metric.status]} />
                 ) : null}
               </div>
-              <span className={styles.metricValue}>
-                {formatMetricValue(metric.code, metric.current)}
-                {metric.unit && metric.code !== "active_time" ? (
-                  <span className={styles.metricUnit}> {metric.unit}</span>
-                ) : null}
-              </span>
+              {metric.current == null ? (
+                <span className={styles.notMeasured}>Not measured yet</span>
+              ) : (
+                <span className={styles.metricValue}>
+                  {formatMetricValue(metric.code, metric.current)}
+                  {metric.unit && metric.code !== "active_time" ? (
+                    <span className={styles.metricUnit}> {metric.unit}</span>
+                  ) : null}
+                </span>
+              )}
               {metric.is_estimate ? (
                 <span className={styles.estimateNote}>
                   An estimate from your wearable, not a lab measure.
                 </span>
               ) : null}
-              <span className={styles.metricMore}>See your trend</span>
+              <span className={styles.metricMore}>
+                {metric.current == null ? "Why this matters" : "See your trend"}
+              </span>
             </button>
           </li>
         ))}

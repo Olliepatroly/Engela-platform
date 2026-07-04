@@ -68,6 +68,31 @@
   max-width: 20rem;
 }
 
+/* ── Paused / no-baseline states ──────────────────────────────────── */
+
+/* A protective pause, framed as care, not a setback (CLAUDE.md §2/§6). */
+.pausedBanner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--c-amber-tint);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+}
+
+.pausedTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.pausedNote {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-action);
+}
+
 /* ── Pillars (accordion) ──────────────────────────────────────────── */
 
 .pillars {
@@ -171,6 +196,12 @@
   gap: var(--space-3);
 }
 
+.focusEmpty {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-action);
+}
+
 .focusItem {
   position: relative;
   padding-left: var(--space-6);
@@ -261,6 +292,13 @@
 .metricUnit {
   font-size: var(--text-label);
   font-weight: 400;
+  color: var(--c-text-tertiary);
+}
+
+/* Not-measured: a reading is expected but none is in yet. */
+.notMeasured {
+  font-size: var(--text-small);
+  font-weight: 600;
   color: var(--c-text-tertiary);
 }
 

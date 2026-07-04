@@ -2,6 +2,39 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-04 — Phase 3 (client depth): empty / paused / no-baseline states + skeletons
+
+**What:**
+- **Route skeletons for the whole client app.** New `loading.tsx` for `/app`, `/app/program`,
+  `/app/program/[sessionId]`, `/app/community` and `/app/account`, each shaped to its route (home =
+  hero ring + three pillar rows, programme = list, account = forms, etc.). They render inside the
+  client-segment shell, so the top header and bottom tab bar stay put while the content streams. A
+  shared shimmer primitive (`Skel`) with `role="status"` + visually-hidden "Loading" text; the
+  global reduced-motion rule disables the shimmer automatically.
+- **Home states.** A protective "paused" banner when `client.status` is paused (framed as care,
+  not a setback, per `CLAUDE.md` §2/§6); a "no baseline yet" hero for a brand-new client with no
+  weekly review (welcome copy instead of an empty ring, pillars/focus hidden); a "Not measured yet"
+  treatment for a metric whose current reading is null (value replaced, footer becomes "Why this
+  matters"); and a soft empty state for "This week's focus" when a review exists but has no actions.
+- **Community empty state.** When a client has no care team yet, the community shows a friendly
+  "Your team will appear here" card instead of an empty list.
+
+**Why:** the empty/paused/no-baseline/not-measured states + skeletons bullet of Phase 3 §3c
+(`CLAUDE.md` §5, `docs/HANDOVER.md`).
+
+**Safety:** frontend only, no backend change; still 100% from `client_home_payload()`. Verified
+live as the demo client: the primary (data-present) home/community paths render unchanged and the
+community route skeleton was captured mid-navigation. The paused/no-baseline/not-measured branches
+are guarded conditionals (typecheck + lint clean) that the fully-populated demo client does not
+exercise.
+
+**Files:** `src/app/app/Skel.tsx` (new); `loading.tsx` in `src/app/app/`, `.../program/`,
+`.../program/[sessionId]/`, `.../community/`, `.../account/` (new); `client-shell.module.css`;
+`src/features/client-home/ClientHomeView.tsx`, `ClientMetrics.tsx`, `client-home.module.css`;
+`src/features/account/CommunityView.tsx`, `community.module.css`.
+
+**Migration/secret/DNS implications:** none.
+
 ## 2026-07-04 — Phase 3 (client depth): bottom nav bar + expandable pillars
 
 **What:**
