@@ -2,6 +2,105 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-04 — Audit trail: care-team scoping, search/filters, PDF export
+
+**What:**
+- **Audit reads are now scoped to the consented care team (security fix).** Previously
+  `audit_log_select_clinical` let any clinical user read every audit row, whose `meta` can
+  hold special-category detail (metric codes, values) about any client. Migration
+  `0015_audit_log_care_team_scope.sql` adds `audit_client_id(entity, entity_id, meta)` (pulls
+  the client from `meta.client_id`, or `entity_id` for consent events; uuid-guarded, no table
+  access) and rewrites the policy so a non-admin reads only their own actions plus rows about
+  clients on their care team **with consent granted** (reusing `is_on_care_team`, which already
+  requires `consent_at IS NOT NULL`). Admins keep the full governance view. Rows with no
+  resolvable client (MFA, profile, invites, library edits) stay visible to the actor and
+  admins. **Verified live:** Tom Whitfield's trail dropped from 44+ rows to 17, showing only
+  Michael Mercer and Peter Curtis (his consented clients); Beatrice Cole and Leo Yates events,
+  including a sign-off, are gone.
+- **Search and filters on `/console/audit`:** free-text search (name, action, detail), plus
+  Who, Client and date-range (From/To) filters. The Who and Client dropdowns are built from the
+  rows the viewer can actually see, so you can only filter by people and clients already in your
+  own audit view. Client-side over the RLS-scoped set, so nothing sensitive is filtered only in
+  the browser.
+- **PDF export of the current selection:** exports exactly the filtered rows to a print-ready
+  report (opened in a standalone window, "Save as PDF") with a header naming who generated it,
+  when, the filters applied and the record count, plus a confidentiality notice. Colours are
+  read from the app's CSS tokens at runtime rather than hard-coded. Serves subject-access
+  requests and governance reviews (e.g. "all interactions with Tom Whitfield in July").
+- **Exporting is itself audited:** `logAuditExport` writes an `audit.exported` event with the
+  filter summary and row count (no client identifiers), so pulling a report is on the record.
+- **Test:** the live RLS suite gains a check that a clinician never sees an audit row about a
+  client outside their consented care team.
+
+**Why:** the audit `meta` detail for non-care-team clients was a data-sensitivity exposure
+(flagged by Oliver); least-disclosure applies to the audit trail as much as the record itself.
+Filtering and export make the trail usable for real governance and GDPR subject-access work.
+
+**Migration/secret/DNS implications:**
+- Migration `0015_audit_log_care_team_scope.sql` applied to the live project and mirrored
+  locally. No schema/column change, so `database.types.ts` did not need regenerating. Adds
+  indexes on `audit_log (at desc)` and `(actor_id)`.
+- No new secrets. PDF export is client-side (browser Save-as-PDF), so nothing was added to the
+  Worker bundle.
+
+## 2026-07-04 — Phase 2 clinical core: audited sign-off, audit trail, invite flow, TOTP MFA, tests
+
+**What:**
+- **Audited sign-off (the Phase 2 gate).** The consultant (or admin) signs off the selected
+  weekly review from a confirm-and-sign form in the console (`SignOffPanel.tsx`,
+  `signOffReview` in `entry-actions.ts`). Signing writes `signed_by`/`signed_at` on
+  `weekly_reviews` and appends `weekly_review.signed_off` to the append-only `audit_log`;
+  a signed review cannot be signed twice and there is no un-sign. Other clinical roles see
+  the sign-off record read-only.
+- **Audit trail screen** (`/console/audit`): the whole `audit_log`, newest first, with actor
+  names, humanised action labels, client resolution (a client outside the viewer's care team
+  shows as exactly that, no name) and compact detail. Read-only; served by the existing
+  `audit_log_select_clinical` policy.
+- **Invite flow, live end to end.** Migration `0014_invites_and_account_requests.sql`:
+  `invites` (single-use signed links; only the SHA-256 token hash is stored) and
+  `account_requests` (from the public create-account page), both RLS deny-by-default with
+  clinical-only SELECT and server-only writes. New `/console/invites` screen: send an
+  invitation (consultant/admin can invite any role, other clinical roles invite clients
+  only), follow up create-account requests, revoke pending invites, track status.
+  `/invite/[token]` accepts: the account is created with the invited role (the only way a
+  role is ever assigned), a client invite carries optional MRN/diagnosis and the client's
+  acceptance itself grants consent for the inviter's care-team membership (consent rule
+  respected), and the new member is signed straight in. `/create-account` now files real
+  requests. Invitation email goes out via Resend (`src/lib/email.ts`) when
+  `RESEND_API_KEY` is set; until then the console shows the link to share personally.
+- **TOTP two-step verification for clinical accounts.** Enrolment card on
+  `/console/account` (`MfaSettings.tsx`: QR + manual key, confirm with a code, turn off
+  again); sign-in gains a code step when the account has a verified factor
+  (`verifyMfaCode`); the middleware holds sessions still at assurance level 1 away from
+  `/console`/`/app` on `/signin/mfa` until the code is presented. Enrolment and removal are
+  audited (`mfa.enrolled` / `mfa.unenrolled`). Grace path: accounts without a factor sign
+  in as before (demo accounts unaffected); mandatory enrolment for clinical roles is a
+  follow-up decision. `SUPABASE_JWT_SECRET` turned out not to be needed: assurance levels
+  are read through the Supabase client, not by verifying JWTs by hand.
+- **Tests.** Vitest units for the scoring engine and the blocks calendar
+  (`scoring.test.ts`, `constants.test.ts`), and a scripted RLS suite (`tests/rls.test.ts`)
+  that replaces the by-hand REST checks: client sees only their own record, clinical
+  tables return nothing to clients, `client_home_payload` carries no disease markers,
+  cross-client isolation, the consent gate (paused sharing hides the client), write
+  refusal, and anonymous gets nothing. Runs against the live project when
+  `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`/`DEMO_PASSWORD` are present (`.env.local` is read
+  automatically) and skips cleanly otherwise, so CI stays green without secrets.
+
+**Why:** Phase 2 per CLAUDE.md §5: sign-off must persist and write an audit entry (verified
+live: Beatrice Cole week 14 signed by Dr Emily Hartley, audit row written), onboarding must
+be invite-only with no self-registered roles, clinical accounts need MFA, and the RLS
+boundary needed a repeatable test pass.
+
+**Migration/secret/DNS implications:**
+- Migration `0014_invites_and_account_requests.sql` applied to the live project and
+  mirrored locally; `database.types.ts` regenerated.
+- `RESEND_API_KEY` still empty (Open item): invite emails stay off, link-sharing fallback
+  active. SPF/DKIM on the zone still needed before emails go out. Add a `RESEND_API_KEY`
+  secret to CI/Workers when ready — no code change needed.
+- `DEMO_PASSWORD` added to `.env.local` (gitignored) for the RLS suite.
+- Verified with a throwaway invite acceptance against the live DB; all test rows (user,
+  client, care team, invite, request, audit entries) were removed afterwards.
+
 ## 2026-07-03 — Programmes split into four pages, calendar blocks, redrawn body figures
 
 **What:**

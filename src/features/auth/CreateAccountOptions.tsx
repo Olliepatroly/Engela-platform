@@ -1,29 +1,29 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useActionState, useState } from "react";
 import styles from "./create-account.module.css";
 
 type Path = "team" | "client";
 
+// Mirrors the invites feature's RequestState; declared locally so auth does
+// not import across features (the page passes the server action in).
+export type AccountRequestState = { error: string | null; success: string | null };
+
+const initial: AccountRequestState = { error: null, success: null };
+
 /**
  * Two ways in, both invite-only: clinical team members are set up by the
- * rehab lead; clients are invited by their community. This is the request
- * foundation. Requests are not sent anywhere yet; invites remain the only
+ * rehab lead; clients are invited by their community. Submitting files a
+ * request on the clinical team's invitations screen; invites remain the only
  * way an account is created.
  */
-export function CreateAccountOptions() {
+export function CreateAccountOptions({
+  requestAction,
+}: {
+  requestAction: (state: AccountRequestState, formData: FormData) => Promise<AccountRequestState>;
+}) {
   const [path, setPath] = useState<Path | null>(null);
-  const [submitted, setSubmitted] = useState(false);
-
-  const choose = (next: Path) => {
-    setPath(next);
-    setSubmitted(false);
-  };
-
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
+  const [state, action, pending] = useActionState(requestAction, initial);
 
   return (
     <div className={styles.wrap}>
@@ -31,7 +31,7 @@ export function CreateAccountOptions() {
         <button
           type="button"
           className={`${styles.option} ${path === "team" ? styles.optionActive : ""}`}
-          onClick={() => choose("team")}
+          onClick={() => setPath("team")}
         >
           <span className={styles.optionTitle}>I am part of the clinical team</span>
           <span className={styles.optionText}>
@@ -42,7 +42,7 @@ export function CreateAccountOptions() {
         <button
           type="button"
           className={`${styles.option} ${path === "client" ? styles.optionActive : ""}`}
-          onClick={() => choose("client")}
+          onClick={() => setPath("client")}
         >
           <span className={styles.optionTitle}>I am starting my programme</span>
           <span className={styles.optionText}>
@@ -51,8 +51,9 @@ export function CreateAccountOptions() {
         </button>
       </div>
 
-      {path != null && !submitted ? (
-        <form className={styles.form} onSubmit={onSubmit}>
+      {path != null && !state.success ? (
+        <form className={styles.form} action={action}>
+          <input type="hidden" name="path" value={path} />
           <label className={styles.field}>
             <span className={styles.label}>Full name</span>
             <input className={styles.input} name="fullName" required placeholder="Your name" />
@@ -81,8 +82,13 @@ export function CreateAccountOptions() {
               </select>
             </label>
           ) : null}
-          <button className={styles.submit} type="submit">
-            Request an invite
+          {state.error ? (
+            <p className={styles.error} role="alert">
+              {state.error}
+            </p>
+          ) : null}
+          <button className={styles.submit} type="submit" disabled={pending}>
+            {pending ? "Sending…" : "Request an invite"}
           </button>
           <p className={styles.caption}>
             Access is by invitation only. Nobody can self-register into the platform.
@@ -90,12 +96,7 @@ export function CreateAccountOptions() {
         </form>
       ) : null}
 
-      {submitted ? (
-        <p className={styles.confirmation}>
-          Thank you. {path === "team" ? "The rehab lead" : "Your community"} will be in touch with a
-          personal invitation. In this demo, requests are not yet sent anywhere.
-        </p>
-      ) : null}
+      {state.success ? <p className={styles.confirmation}>{state.success}</p> : null}
     </div>
   );
 }

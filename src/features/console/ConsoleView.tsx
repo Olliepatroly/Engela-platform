@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { AddDataPanel, type MetricOption } from "./AddDataPanel";
 import { MetricTable } from "./MetricTable";
 import { ReportsPanel } from "./ReportsPanel";
+import { SignOffPanel } from "./SignOffPanel";
 import type { ReviewVM, RosterEntry } from "./data";
 import styles from "./console.module.css";
 
@@ -38,11 +39,13 @@ export function ConsoleView({
   roster,
   review,
   viewerName,
+  viewerCanSignOff,
   metricOptions,
 }: {
   roster: RosterEntry[];
   review: ReviewVM | null;
   viewerName: string;
+  viewerCanSignOff: boolean;
   metricOptions: MetricOption[];
 }) {
   return (
@@ -156,17 +159,24 @@ export function ConsoleView({
 
             <ReportsPanel />
 
-            <section className={styles.signOff} aria-label="Sign-off">
-              <h2 className={styles.actionsTitle}>Sign-off</h2>
-              <p className={styles.signOffText}>
-                {review.issuedByName
+            <SignOffPanel
+              clientId={review.patient.clientId}
+              reviewId={review.reviewId}
+              weekNo={review.weekNo}
+              patientName={review.patient.fullName}
+              issuedText={
+                review.issuedByName
                   ? `Issued by ${review.issuedByName} on ${formatDate(review.issuedAt)}.`
-                  : "Not yet issued."}{" "}
-                {review.signedByName
+                  : "Not yet issued."
+              }
+              signedText={
+                review.signedByName
                   ? `Signed off by ${review.signedByName} on ${formatDate(review.signedAt)}.`
-                  : "Not yet signed off. Audited sign-off arrives in Phase 2."}
-              </p>
-            </section>
+                  : "Not yet signed off."
+              }
+              isSigned={review.signedAt != null}
+              canSignOff={viewerCanSignOff}
+            />
 
             <p className={styles.disclaimer}>
               Rehabilitation monitoring tool. Supports the medical team; it does not replace

@@ -1,3 +1,4 @@
 export { SignInForm } from "./SignInForm";
-export { signIn, signOut, type SignInState } from "./actions";
+export { MfaChallengeForm } from "./MfaChallengeForm";
+export { signIn, signOut, verifyMfaCode, type SignInState } from "./actions";
 export { signInSchema, type SignInInput } from "./schema";

@@ -332,6 +332,62 @@
   color: var(--c-text-secondary);
 }
 
+.signOffForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--c-line);
+}
+
+.signOffCheck {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--c-text-action);
+  cursor: pointer;
+}
+
+.signOffCheck input {
+  margin-top: 0.2em;
+  accent-color: var(--c-primary);
+}
+
+.signOffButton {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-navy);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.signOffButton:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.signOffCaption {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+}
+
+.signOffError {
+  font-size: var(--text-small);
+  color: var(--c-flag);
+}
+
+.signOffSuccess {
+  font-size: var(--text-small);
+  color: var(--c-ontrack);
+}
+
 .disclaimer {
   font-size: var(--text-label);
   color: var(--c-text-tertiary);

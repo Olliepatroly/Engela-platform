@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CreateAccountOptions } from "@/features/auth/CreateAccountOptions";
+import { requestAccount } from "@/features/invites";
 import styles from "../signin/signin.module.css";
 
 export const metadata: Metadata = {
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 /**
  * Two ways in, both invite-only. This page routes people to the right path;
- * the actual invite flow (signed links, TOTP for clinical roles) is Phase 2.
+ * submitted requests appear on the clinical team's invitations screen.
  */
 export default function CreateAccountPage() {
   return (
@@ -22,7 +23,7 @@ export default function CreateAccountPage() {
         <h1 className={styles.heading}>Create an account</h1>
         <p className={styles.subhead}>Tell us who you are and we will get you to the right door.</p>
 
-        <CreateAccountOptions />
+        <CreateAccountOptions requestAction={requestAccount} />
 
         <p className={styles.subhead}>
           Already invited? <Link href="/signin">Sign in</Link>
