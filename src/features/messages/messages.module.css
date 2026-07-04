@@ -1,0 +1,146 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.thread {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rowMine {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rowTheirs {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.bubbleMine,
+.bubbleTheirs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 85%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-client);
+  border: 1px solid var(--c-line);
+}
+
+/* Own messages in the warm amber tint; the team's on plain surface. */
+.bubbleMine {
+  background-color: var(--c-amber-tint);
+  border-bottom-right-radius: var(--space-1);
+}
+
+.bubbleTheirs {
+  background-color: var(--c-surface);
+  border-bottom-left-radius: var(--space-1);
+}
+
+.body {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size: 0.625rem;
+  color: var(--c-text-tertiary);
+}
+
+.empty {
+  padding: var(--space-6);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+}
+
+/* ── Composer ─────────────────────────────────────────────────────── */
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-ink);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+  resize: vertical;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 1px;
+}
+
+.send {
+  align-self: flex-end;
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.send:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.disclaimer {
+  font-size: var(--text-label);
+  line-height: 1.5;
+  color: var(--c-text-tertiary);
+}
+
+/* ── Unavailable (staged, pre-migration) ──────────────────────────── */
+
+.unavailable {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-8);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client-lg);
+}
+
+.unavailableTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.unavailableNote {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
+}

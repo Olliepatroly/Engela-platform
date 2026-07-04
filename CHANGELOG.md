@@ -2,6 +2,53 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-04 — Phase 3 (client depth): tickable actions + "message Ollie" (STAGED — migrations not yet applied)
+
+> **Action required before these features work: apply migrations `0016` and `0017` to the live
+> Supabase project (Supabase MCP or a linked CLI), then regenerate `src/types/database.types.ts`
+> (`pnpm db:types`).** This session could not apply migrations (MCP unauthorised, project not
+> linked), so the app code ships **staged with graceful degradation**: until the migrations are
+> applied, actions render as a plain (non-tickable) list and messaging is hidden. Verified live
+> that the degraded paths behave correctly, so production stays healthy between merge and apply.
+
+**What:**
+- **Tickable actions.** Migration `0016_client_action_checks.sql` adds a `client_action_checks`
+  table (one row per completed action; RLS SELECT = the client's own + the consented care team;
+  deny-by-default, no client write policy) and recreates `client_home_payload()` to report `done`
+  per visible action. Client UI (`ClientActions.tsx`) renders tickable checkboxes when the payload
+  carries `done`, else the previous plain list; ticking is optimistic and persisted via the
+  `toggleAction` server action (service-role write with an ownership check that the action is a
+  client-visible, non-flag action belonging to the caller; audited). Done = filled box + muted,
+  struck-through text (never colour alone).
+- **"Message Ollie" — two-way thread.** Migration `0017_messages.sql` adds a `messages` table
+  (client_id/sender_id/sender_role/body; RLS SELECT = the client's own thread + the consented care
+  team; deny-by-default, no client write policy) with a length-checked body. New `messages` feature
+  (`getThread`, `sendMessage`, `MessagesView`) and route `/app/community/messages` (a sub-view of
+  The community, so the Community tab stays active). The client sends via the `sendMessage`
+  server action (service-role insert stamping sender_role='client'; audited, no body in audit meta);
+  own messages sit right, the team's left. Message bodies are special-category, so they are stored
+  in-app under RLS, never emailed. A gated "Message Ollie" entry on the community page appears only
+  once messaging is live.
+
+**Safety:** both tables are RLS deny-by-default with SELECT scoped to the client and their consented
+care team; all writes are server-authoritative through the service role with explicit checks and
+audit entries, matching setConsent. **The new-table RLS has NOT been verified live** (tables not yet
+created) — add default-deny coverage to `tests/rls.test.ts` after applying the migrations. Verified
+live (staged/degraded): the home focus list stays a plain bullet list, the community page hides the
+messaging entry, and `/app/community/messages` shows a graceful "on its way" state with no server
+errors.
+
+**Files:** `supabase/migrations/0016_client_action_checks.sql`,
+`supabase/migrations/0017_messages.sql` (new, **not yet applied**);
+`src/features/client-home/actions.ts`, `ClientActions.tsx`, `ClientHomeView.tsx`, `data.ts`,
+`client-home.module.css`; `src/features/messages/*` (new);
+`src/app/app/community/messages/page.tsx` (new); `src/app/app/community/page.tsx`;
+`src/features/account/account.module.css`.
+
+**Migration/secret/DNS implications:** two new migrations to apply live (`0016`, `0017`);
+regenerate `database.types.ts` afterwards (the staged code uses untyped-client casts for the two new
+tables until then). No secret/DNS change.
+
 ## 2026-07-04 — Phase 3 (client depth): empty / paused / no-baseline states + skeletons
 
 **What:**

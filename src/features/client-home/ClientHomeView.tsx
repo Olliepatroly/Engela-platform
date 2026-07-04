@@ -1,3 +1,4 @@
+import { ClientActions } from "./ClientActions";
 import { ClientPillars } from "./ClientPillars";
 import type { ClientHomeVM } from "./data";
 import styles from "./client-home.module.css";
@@ -94,13 +95,7 @@ export function ClientHomeView({ home }: { home: ClientHomeVM }) {
           <section className={styles.focus} aria-label="This week's focus">
             <h2 className={styles.sectionTitle}>This week&rsquo;s focus</h2>
             {home.actions.length > 0 ? (
-              <ul className={styles.focusList}>
-                {home.actions.map((action) => (
-                  <li key={action.id} className={styles.focusItem}>
-                    {action.text}
-                  </li>
-                ))}
-              </ul>
+              <ClientActions actions={home.actions} />
             ) : (
               <p className={styles.focusEmpty}>
                 Nothing specific to action this week. Keep steady and carry on with your programme.

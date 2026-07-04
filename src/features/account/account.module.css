@@ -223,6 +223,31 @@
   text-decoration: none;
 }
 
+/* "Message Ollie" entry point on the community page. */
+.messageCta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+  text-decoration: none;
+  background-color: var(--c-amber-tint);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+}
+
+.messageCta::after {
+  content: "→";
+  color: var(--c-slate);
+}
+
+.messageCta:hover {
+  border-color: var(--c-slate);
+}
+
 .backLink:hover {
   text-decoration: underline;
 }
