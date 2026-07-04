@@ -2,6 +2,23 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-04 — Hotfix: lazy env validation (500 on invites + create-account in production)
+
+**What:** `src/lib/env.ts` now validates the environment lazily (memoised resolver behind a
+`Proxy`) instead of running `schema.safeParse(process.env)` and throwing at module load.
+
+**Why:** on Cloudflare Workers, secrets and vars are bound per-request and are absent at
+global/module-evaluation time. `env.ts` validated at import and threw when the required vars were
+missing, so every route that imported it 500'd in production: `/console/invites`,
+`/create-account` (public — signup was down) and `/invite/[token]`. Only the invites feature
+(added in Phase 2) imports `env`, so this surfaced when Phase 2 deployed. This is the same reason
+`admin.ts`/`server.ts` read `process.env` inside their handlers. The `env` proxy defers the parse
+to first property access, which always happens within a request; no call-site changes were needed.
+Verified in production after deploy: `/create-account` and `/console/invites` return 200/307
+instead of 500.
+
+**Migration/secret/DNS implications:** none. Behaviour change is server-only and internal.
+
 ## 2026-07-04 — Audit trail: care-team scoping, search/filters, PDF export
 
 **What:**
