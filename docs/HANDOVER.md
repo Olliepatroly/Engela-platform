@@ -1,4 +1,4 @@
-# Handover — Phase 2, written 2026-07-03
+# Handover — Phase 3, written 2026-07-04
 
 Written for a fresh Claude Code session picking up this project with no prior context. Read
 `CLAUDE.md` first in full (operating manual, non-negotiable rules) — this doc is "what's actually
@@ -7,173 +7,140 @@ live system, `CHANGELOG.md`, or `git log` as this file being stale, not the othe
 
 ## TL;DR
 
-**Phase 1 is done and live.** A working clinical platform is in production at
-**https://engelahealth.com**: real Supabase backend, real RLS, real auth, five roles wired end to
-end (consultant, nurse — enum only, unused in demo data, cep, physio, client), clinician data
-entry with a computed scoring engine, per-client goals, a client-facing "community" (consent)
-surface, exercise programmes (now called "blocks" in the UI) with a MuscleWiki-style body map, and
-community search + team-join requests on both surfaces. GitHub → Cloudflare Workers CI/CD is
-green. `main` is currently clean and deployed; the working tree has no uncommitted changes.
+**Phase 1 and Phase 2 are code-complete.** Phase 1 is live in production. **Phase 2 is built and
+verified but not yet merged to `main`** — it lives on branch `feat/phase-2-clinical-core` as
+**PR #2**, CI green (typecheck, lint, 28 tests, build, preview deploy all pass). Phase 2 added:
+audited weekly-review sign-off, a read-only audit trail with care-team scoping + search/filters +
+PDF export, a live invite flow (signed single-use links, `/console/invites`, `/invite/[token]`,
+real create-account requests), TOTP two-step verification for clinical accounts, and a test pass
+(unit tests for the scoring engine and calendar, plus a scripted live RLS suite).
 
-**What's next is Phase 2** (per `CLAUDE.md` §5): audited sign-off UI, a real invite flow, TOTP MFA
-for clinical accounts, and an RLS hardening + tests pass. None of these exist yet. See "Phase 2
-scope" below for concrete starting points.
+**Read this carefully — the database is ahead of the deployed app.** Migrations `0014` and `0015`
+were applied to the **live Supabase project** during Phase 2 (via the Supabase MCP), so the live
+DB already has the invites/account_requests tables and the tightened audit-log RLS. But the
+**production Worker still runs Phase 1 code** (last deployed `main`), because Phase 2 is on PR #2
+and `Deploy Production` only runs on `main`. Production won't show any Phase 2 feature until PR #2
+is reviewed and merged. The additive schema is harmless to the old app (it doesn't read the new
+tables). **First job for whoever picks this up: decide with Oliver whether to merge PR #2** (a
+second reviewer on data-access changes is recommended, `CLAUDE.md` §7 #6), then let it deploy.
+
+**What's next is Phase 3** (per `CLAUDE.md` §5, "Client depth"): pillar detail, progress, tickable
+actions, "message Ollie", and the empty/paused/no-baseline/not-measured states + skeletons. Oliver
+has also asked for two specific client-app design changes as part of this phase — a **bottom
+navigation bar** and **expandable/collapsible pillars** — both fully specced in "Phase 3 scope"
+below.
 
 ## Live system
 
-- **Production**: https://engelahealth.com — confirmed live this session (`/signin` → 200,
-  `/console/programs` unauthenticated → 307 to `/signin`, middleware gating works). Also reachable
-  at the Workers subdomain `engela-platform.<account>.workers.dev`.
+- **Production**: https://engelahealth.com (Phase 1 code; Phase 2 pending PR #2 merge). Also
+  reachable at the Workers subdomain `engela-platform.<account>.workers.dev`.
 - **`www.engelahealth.com` still resolves nowhere** — unresolved since Phase 1, see Open items.
 - **GitHub repo**: `Olliepatroly/Engela-platform` (private), default branch `main`. `gh` CLI is
-  authenticated as `Olliepatroly` in this environment.
+  authenticated as `Olliepatroly`. **Phase 2 = PR #2** on `feat/phase-2-clinical-core` (open, CI
+  green). PR #1 (programmes/search) already merged.
 - **Supabase project**: "Engela-platform", ref `hsxhylmheonlcmsjlffy`, region `eu-west-1`
   (Ireland — still not London, see Open items), connected via the Supabase MCP server (project
-  ID `730d2737-c96c-4bd9-bd2b-016dc6c6f90a` in this session's tool list). If a fresh session
-  doesn't see the Supabase tools, they need re-authorizing via `/mcp`.
-- **Cloudflare**: Worker `engela-platform` (production) + `engela-platform-preview` (PR
-  previews), zone `engelahealth.com` active, custom domain attached. Deploys run from GitHub
-  Actions (`.github/workflows/`), **never** from Workers Builds directly (see `wrangler.jsonc`
-  comment).
-- **Branch hygiene**: `feat/programs-and-community-search` was merged via PR #1 (squash-free merge
-  commit) and is safe to delete on origin now. `backup/main-pre-programs` exists on origin,
-  pinned to `b1fe911` (the commit immediately before the programmes/search feature landed) — kept
-  deliberately as a rollback point; do not delete without asking Oliver.
+  ID `730d2737-c96c-4bd9-bd2b-016dc6c6f90a`). **Live schema is at migration `0015`.** If a fresh
+  session doesn't see the Supabase tools, they need re-authorizing via `/mcp`.
+- **Cloudflare**: Worker `engela-platform` (production) + `engela-platform-preview` (PR previews),
+  zone `engelahealth.com` active, custom domain attached. Deploys run from GitHub Actions
+  (`.github/workflows/`), **never** from Workers Builds directly.
+- **Branch hygiene**: `feat/programs-and-community-search` (PR #1, merged) is safe to delete on
+  origin. `backup/main-pre-programs` (pinned to `b1fe911`) stays as a rollback point — do not
+  delete without asking Oliver.
 
 ## Credentials / how to get back in
 
 - Local secrets: `.env.local` (gitignored) has `NEXT_PUBLIC_SUPABASE_URL`,
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` populated and working.
-  `SUPABASE_JWT_SECRET` and `RESEND_API_KEY` are present as keys but **empty** — needed before
-  Phase 2 invite emails work (see Open items #4).
-- GitHub Actions secrets (already set): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-  `SUPABASE_SERVICE_ROLE_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. No `RESEND_*`
-  secret exists yet in CI — add one when the invite flow goes in.
-- `gh` CLI: already authenticated in this dev environment.
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` working. **`DEMO_PASSWORD`** was
+  added (the shared demo-account password) — used only by the RLS test suite.
+  `SUPABASE_JWT_SECRET` is still empty and turned out **not** to be needed for MFA (assurance
+  levels are read through the Supabase client, not by verifying JWTs by hand). `RESEND_API_KEY` is
+  still **empty** — invite emails stay off until it is set (link-sharing fallback works meanwhile).
+- GitHub Actions secrets (set): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. Add a `RESEND_API_KEY`
+  secret when invite emails go live.
+- `gh` CLI: authenticated in this dev environment.
 
-## What's built (functional, verified against the live system)
+## What's built
 
-Structure follows `CLAUDE.md` §4: `src/features/<feature>/index.ts`, no cross-feature imports.
+Structure follows `CLAUDE.md` §4: `src/features/<feature>/index.ts`, no cross-feature imports
+except via `components/ui`, `lib/`, `types/`.
 
-### Auth (`src/features/auth/`)
-Email/password sign-in (Supabase Auth), role-aware redirect (`homePathForRole` in
-`src/lib/roles.ts`), sign-out. `CreateAccountOptions.tsx` (`/create-account`) is **still a
-non-functional foundation**: two paths (clinical team / client), invite-only messaging, but no
-request is actually sent anywhere. This is Phase 2 work.
+### Phase 1 (live in production)
 
-### Console — the clinical team's surface (`src/features/console/`, `src/features/programs/`,
-`src/features/search/`)
-- `Sidebar.tsx` — permanent left nav (Weekly review, Programmes, Find people, My account),
-  collapsible to an icon rail on desktop. **Responsive below 56rem**: becomes a horizontal top bar
-  (wordmark left, sign-out right, nav pills wrapping, roster as a scrollable strip) — the desktop
-  collapse preference is ignored below that breakpoint via a `matchMedia` check in
-  `Sidebar.tsx`, so a collapsed desktop rail never renders as icon-only chips on a phone.
-- `ConsoleView.tsx` / `MetricTable.tsx` — the weekly review: status strip (diagnosis, treatment
-  phase, MRD, QOL, sessions attended — **consultant/clinical-only**, never sent to the client),
-  composite + pillar scores, per-metric rows (clickable → drill-down modal), actions/flags panel.
-- `AddDataPanel.tsx` / `entry-actions.ts` — record a reading (back-dateable, correctable), add an
-  action/safety flag (flags forced non-client-visible server-side), adjust a per-client goal. All
-  writes are service-role + audited.
-- `scoring.ts` — pure functions: metric score = 60% on-target + 40% consistency; pillar = mean of
-  metrics; composite = mean of pillars; review status = worst metric status. Recomputed on every
-  reading, correction, and goal change.
-- `ReportsPanel.tsx` — PDF picker UI only, **still explicitly non-functional** (no upload, no
-  storage). Untouched since Phase 1.
-- **Exercise programmes, now four pages** under `/console/programs*` (tab nav under the patient
-  banner, shared header via `ProgramTabs.tsx`):
-  - **Exercise overview** (`/console/programs`) — strength/cardiovascular/mobility trend cards
-    (total weight moved, active minutes per completed session, sparkline, % change since the
-    start) plus an adherence card.
-  - **Blocks** (`/console/programs/blocks`) — a month calendar (`buildCalendar` in
-    `constants.ts`, pure function) with session status dots and the active block's date span
-    tinted; block list below with an inline edit form (`updateProgram` action — audited, CEP/admin
-    only, activating one block archives the others).
-  - **Sessions** (`/console/programs/sessions`) — upcoming/completed lists and the full session
-    breakdown (exercises, prescription, muscles worked via `BodyMap`). **CEPs and physios can mark
-    session parts done for the client** (for sessions taken together) via `setCategoryDone`, which
-    now accepts `client | cep | physio | admin` and audits which role acted.
-  - **Planning** (`/console/programs/planning`) — start a block, add sessions, add exercises to
-    any upcoming session, grow the shared exercise library. CEP/admin only; other roles see a
-    read-only note.
-  - Terminology: the console UI says **"block"**, not "programme" — the database tables
-    (`programs`, `program_sessions`) are unchanged, only user-facing copy shifted.
-- **Community search + team requests** (`/console/search`) — directory search over
-  `search_directory()` (name/role/discipline only — never MRN or diagnosis), invite a client into
-  your care or a fellow member to a client's team, answer/withdraw requests. See consent rule
-  below.
-- `src/components/ui/EngelaMark.tsx` — the brand icon (from `engela_health_icon.svg`), inlined SVG
-  using `currentColor` so it drops into the sidebar, the client header and the sign-in card
-  without separate assets.
+- **Auth** (`src/features/auth/`): email/password sign-in, role-aware redirect
+  (`homePathForRole` in `src/lib/roles.ts`), sign-out.
+- **Console** — the clinical team's surface: `Sidebar.tsx` (permanent left nav, collapsible,
+  responsive top bar below 56rem), the weekly review (`ConsoleView.tsx`/`MetricTable.tsx`: status
+  strip, composite + pillar scores, per-metric drill-down modal, actions/flags), clinician data
+  entry (`AddDataPanel.tsx`/`entry-actions.ts`: readings, actions/flags, per-client goals — all
+  service-role + audited), the scoring engine (`scoring.ts`: metric = 60% on-target + 40%
+  consistency; pillar = mean; composite = mean; status = worst metric).
+- **Programmes** ("blocks" in the UI) across four pages under `/console/programs*`: overview,
+  blocks calendar, sessions breakdown with the MuscleWiki-style `BodyMap`, and planning.
+- **Community search + team requests** (`/console/search`, `/app/community`) with the load-bearing
+  **consent rule**: only the client's own action sets `care_team.consent_at`; a peer-invite
+  acceptance writes the row with `consent_at = null` (no DB access until the client turns sharing
+  on). See `CLAUDE.md` and prior handovers before touching this.
+- **Client app** — phone-first (`src/features/client-home/`, `programs/`, `account/`, `search/`):
+  `/app` home (composite ring, pillar cards, focus, "your numbers", all from the SECURITY DEFINER
+  `client_home_payload()`), `/app/program`, `/app/community`, `/app/account`.
 
-### Client app — phone-first (`src/features/client-home/`, `src/features/programs/`,
-`src/features/account/`, `src/features/search/`)
-- `ClientHomeView.tsx` (`/app`) — composite ring, pillar cards, "This week's focus", "Your
-  numbers", all sourced exclusively from the SECURITY DEFINER `client_home_payload()` — clients
-  have **no direct SELECT** on `weekly_reviews` / `pillar_scores` / `metric_readings` /
-  `actions_flags`. Header was recently fixed: logo + sign-out on one row, nav pills
-  (Programme/Community/Account) wrap onto their own row below so nothing clips on narrow phones.
-- `/app/program` and `/app/program/[sessionId]` — "Your programme": next up / coming up / done,
-  and a session page where the client marks cardiovascular, resistance and mobility **done
-  separately** (each a tap, reopening is one tap too, no guilt copy). Shows the same `BodyMap`.
-- `/app/community` — the client's team ("The community"), consent controls
-  (`CommunityView.tsx`/`setConsent`), plus **Find a specialist** search
-  (`ClientSearchView.tsx`) to request community members join the client's team, and to answer
-  incoming invites.
-- `src/features/account/` — `/console/account` and `/app/account` for personal settings.
+### Phase 2 (on PR #2, verified live during the session — see below)
 
-### Body map (`src/components/ui/BodyMap.tsx`)
-Redrawn this session as anatomical line art (MuscleWiki-style): bezier-authored front/back
-figures on a 300×640 canvas, every muscle compartment individually outlined, highlighted groups
-filled amber (worked directly) / slate (also involved), legend always names the groups in text
-(colour is never the only signal). The female figure is derived from the same authored path data
-via a piecewise horizontal-scale transform (`FEMALE_STOPS` in `BodyMap.tsx`) — narrower
-shoulders/waist, wider hips — not a separate drawing. `clients.body_map` (`'male' | 'female'`)
-picks which figure renders; both surfaces get it automatically.
+- **Audited sign-off** (`src/features/console/SignOffPanel.tsx`, `signOffReview` in
+  `entry-actions.ts`): the consultant/admin signs off the selected weekly review from a
+  confirm-and-sign form; writes `signed_by`/`signed_at` and appends `weekly_review.signed_off` to
+  `audit_log`. No double-sign, no un-sign. Other clinical roles see the record read-only. **This
+  is the Phase 2 gate** — verified live (Beatrice Cole week 14 signed by Dr Emily Hartley, audit
+  row written).
+- **Audit trail** (`/console/audit`, `AuditTrailView.tsx`, `getAuditTrail`/`audit-actions.ts`):
+  the append-only trail, newest first, with humanised action labels. **Care-team scoped** — see
+  migration `0015`: a non-admin reads only their own actions plus rows about clients on their care
+  team *with consent granted*; admins see everything; rows with no client (MFA, profile, invites,
+  library edits) are actor/admin-only. **Search + filters** (free text, Who, Client, date range;
+  dropdowns built only from rows the viewer can see) and **PDF export** of the current selection
+  (standalone print window → Save as PDF, tokens read at runtime, confidential header). Exporting
+  writes an `audit.exported` governance event. Verified live: Tom Whitfield's trail correctly
+  showed only his two consented clients, not the whole database.
+- **Invite flow** (`src/features/invites/`, migration `0014`): `invites` (single-use links,
+  7-day expiry, only the SHA-256 token hash stored) + `account_requests`, both RLS deny-by-default.
+  `/console/invites` sends/tracks/revokes invitations (consultant/admin invite any role, others
+  invite clients only) and follows up create-account requests. `/invite/[token]` creates the
+  account with the invited role (the only way a role is assigned); a client's acceptance grants
+  consent for the inviter's care-team membership. `/create-account` files real requests. Email via
+  Resend (`src/lib/email.ts`) when `RESEND_API_KEY` is set, else the console shows the link to
+  share. Verified live end to end with a throwaway acceptance, then fully cleaned up.
+- **TOTP two-step verification** (`src/features/account/MfaSettings.tsx`, `MfaChallengeForm.tsx`,
+  `verifyMfaCode`): enrolment card on `/console/account`, a code step at sign-in, and a middleware
+  gate holding assurance-level-1 sessions on `/signin/mfa`. Enrol/unenrol audited. **Grace path**:
+  accounts without a factor sign in as before (demo accounts unaffected). Verified live by
+  enrolling the demo physio with real codes, confirming the step-up, then unenrolling.
+- **Tests**: `src/features/console/scoring.test.ts`, `src/features/programs/constants.test.ts`
+  (21 unit tests), and `tests/rls.test.ts` (a live RLS suite: own-record scoping, empty clinical
+  tables for clients, no disease markers in the projection, cross-client isolation, the consent
+  gate, audit care-team scoping, write refusal, anonymous access). The RLS suite runs against the
+  live project when `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`/`DEMO_PASSWORD` are present and skips
+  cleanly otherwise, so CI stays green without secrets. `pnpm test` = 28 passed, 1 skipped.
 
-### Search / team requests — consent rule (load-bearing, read before touching)
-`team_requests` has three kinds: `client_request` (client asks a member), `clinician_invite`
-(member invites a client into their care), `peer_invite` (member invites a fellow member to a
-client's team). **Only the client's own action sets `consent_at`**: their own request, or their
-acceptance of an invite. A `peer_invite` acceptance writes the `care_team` row with `consent_at =
-null` — the new clinician has **no DB access** until the client turns sharing on in The
-community. This was verified live this session (Dr Priya Sharma invited Daniel Ross to Leo
-Yates's team; Daniel accepted; Leo did not appear in Daniel's roster). That demo state is still
-live in the database — it's real, not a bug, and fine to leave as a working example of the
-consent gate, or reset if it's in the way.
+## Data model (migrations 0001–0015, all applied live and mirrored in `supabase/migrations/`)
 
-## Data model (migrations `0001`–`0013`, all applied live and mirrored in `supabase/migrations/`)
+`0001`–`0013` as in the Phase 2 handover (initial schema + RLS, function grant hardening, RLS
+perf, `client_home_payload`, consent gates, client care-team reads, metric education, physio role,
+client goals, programmes/exercises/team-requests, exercise seed, `my_team_requests`). New this
+phase:
 
-- `0001` — initial schema, RLS deny-by-default, role/care-team helper functions.
-- `0002`, `0003` — revoke default `EXECUTE` grants `anon`/`PUBLIC` get on new functions.
-- `0004` — RLS perf (wrap `auth.uid()` in a subselect).
-- `0005` — `client_home_payload()` SECURITY DEFINER client-safe projection.
-- `0006` — consent gate: `is_on_care_team()` requires `care_team.consent_at IS NOT NULL`.
-- `0007` — clients read their own `care_team` rows + `my_care_team()`.
-- `0008` — `metrics_catalog.why_it_matters` education copy.
-- `0009` — `physio` role added.
-- `0010` — `client_metric_targets` (per-client goals), `metric_readings.recorded_at`.
-- `0011` — **programmes/exercises/team-requests schema**: `exercise_category`, `muscle_group`,
-  `session_status`, `team_request_kind`, `team_request_status` enums; `exercises`, `programs`,
-  `program_sessions`, `session_exercises`, `team_requests` tables, all RLS deny-by-default
-  (care team with consent, or the client themselves); `clients.body_map`; `search_directory()`
-  SECURITY DEFINER (directory-safe fields only).
-- `0012` — 31-exercise starter library seed (cardiovascular/resistance/mobility, muscle-tagged).
-- `0013` — `my_team_requests()` SECURITY DEFINER projection with names for everyone involved.
+- `0014_invites_and_account_requests.sql` — `invites` and `account_requests` tables, RLS
+  deny-by-default with clinical-only SELECT and server-only writes.
+- `0015_audit_log_care_team_scope.sql` — `audit_client_id(entity, entity_id, meta)` extractor +
+  rewritten `audit_log_select_clinical` so audit reads are scoped to the consented care team (fixes
+  a data-sensitivity exposure where any clinician could read audit `meta` about any client). Adds
+  indexes on `audit_log (at desc)` and `(actor_id)`. No column/type change.
 
-Also `supabase/seed_demo_programs.sql` — Michael Mercer's demo block ("Rebuild strength, block
-3", 17 sessions, one deliberately missed) and Beatrice Cole set to the female body figure.
-
-**Current row counts** (informational, will drift): profiles 8, clients 4, care_team 12,
-weekly_reviews 4, pillar_scores 6, metrics_catalog 12, metric_readings 19, labs 1, actions_flags 6,
-audit_log 44, client_metric_targets 3, exercises 31, programs 1, program_sessions 18,
-session_exercises 100, team_requests 3.
-
-**Security advisor state** (checked this session, `get_advisors` type `security`): six
-`SECURITY DEFINER` warnings, all intentional and all already locked down (`client_home_payload`,
-`current_client_id`, `is_on_care_team`, `my_care_team`, `my_team_requests`, `search_directory` —
-each has `revoke ... from public/anon`, `grant ... to authenticated` only). One real, actionable
-item: **`auth_leaked_password_protection` is disabled** — a one-click enable in the Supabase
-Auth dashboard (HaveIBeenPwned check), not a schema change. Cheap win, do it whenever.
+**Migration discipline:** new file per change, never edit an applied one, apply to the live project
+via the Supabase MCP *and* write the matching `.sql` file locally, regenerate
+`src/types/database.types.ts` after any schema change (`0015` needed no regen — no new columns).
 
 ## Demo accounts
 
@@ -183,101 +150,145 @@ All password `EngelaDemo2026!` — shared/demo-only, rotate or delete before any
 |---|---|---|
 | `demo.consultant@engelahealth.com` | consultant | Dr Emily Hartley — sees all 4 patients |
 | `demo.consultant2@engelahealth.com` | consultant | Dr Priya Sharma — Michael Mercer + Leo Yates |
-| `demo.cep@engelahealth.com` | cep | Daniel Ross — Michael Mercer + (now) Leo Yates, sharing paused |
+| `demo.cep@engelahealth.com` | cep | Daniel Ross — Michael Mercer + Leo Yates (sharing paused) |
 | `demo.physio@engelahealth.com` | physio | Tom Whitfield — Michael Mercer + Peter Curtis |
-| `demo.client@engelahealth.com` | client | Michael Mercer, HCA-MM-0142 — rich worked example, week 32, has the demo block |
+| `demo.client@engelahealth.com` | client | Michael Mercer, HCA-MM-0142 — rich worked example, week 32 |
 | `demo.patient2@engelahealth.com` | client | Beatrice Cole, HCA-BC-0087 — female body figure |
 | `demo.patient3@engelahealth.com` | client | Peter Curtis, HCA-PC-0203 |
 | `demo.patient4@engelahealth.com` | client | Leo Yates, HCA-LY-0011 |
 
-## Open items (real, not hypothetical — carried over + new)
+Note: Beatrice Cole's week 14 review is now **signed off** (Dr Emily Hartley) from Phase 2 sign-off
+testing — a good live example. Michael Mercer's latest review is deliberately left unsigned so the
+sign-off button can be demoed.
 
-1. **`www.engelahealth.com` still resolves nowhere.** Unresolved since Phase 1. Decide: redirect
-   to apex, or serve directly, then wire it up (Cloudflare bulk redirect / second custom domain).
-2. **Region still `eu-west-1` (Ireland)**, not the London the decision log states. Immutable
-   post-creation. Still unresolved, revisit before real patient data.
-3. **`SUPABASE_JWT_SECRET` and `RESEND_API_KEY` are empty in `.env.local`.** Needed for TOTP/MFA
-   work and invite emails respectively — both Phase 2 blockers, see below.
-4. **SPF/DKIM for Resend not set up** on the `engelahealth.com` zone. Needed before invite emails
-   from `team@engelahealth.com` will pass auth / avoid spam.
-5. **Reports panel is still UI-only.** No upload, no storage, no PDF parsing.
-6. **Create-account requests still go nowhere.** `/create-account`'s two-path form doesn't send an
-   invite. This is exactly what the Phase 2 invite flow needs to replace.
-7. **No audited sign-off yet.** The console shows issued/signed-by read-only; no UI to sign off.
-8. **No TOTP MFA** for clinical accounts.
-9. **Branch protection on `main` still unresolved.** GitHub's classic protection API 403'd for
-   this private repo before (needs GitHub Pro, or try the rulesets API). Never resolved.
-10. **`.claude/settings.local.json`** is gitignored (previously found recording literal API tokens
-    in its permission history) — do not remove that gitignore entry.
-11. **`feat/programs-and-community-search` branch still exists on origin**, fully merged — safe to
-    delete when convenient. `backup/main-pre-programs` should stay as the pre-feature rollback
-    point.
-12. **`auth_leaked_password_protection` disabled** — see Security advisor state above, cheap win.
+## Open items (carried over + new)
 
-## Phase 2 scope (per `CLAUDE.md` §5) — concrete starting points
+1. **Merge PR #2.** Phase 2 is not in production until this merges and deploys. Decide on a second
+   reviewer for the data-access changes first (`CLAUDE.md` §7 #6).
+2. **MFA is opt-in with a grace path; decide the policy.** `CLAUDE.md` §3 says clinical accounts
+   *require* TOTP MFA. The build ships a grace path (no factor = sign in as before) so demo
+   accounts keep working. Recommendation (unchanged after discussion): keep it **mandatory** and
+   use the grace path as a rollout window (e.g. "enrol within N days of account creation") rather
+   than a permanent opt-out — a signed liability waiver does not reduce the controller's UK GDPR
+   exposure for special-category data. **Blocker before wider rollout: there is no recovery-code
+   flow.** If a clinician enrols then loses their authenticator before disabling MFA, they are
+   locked out and recovery means deleting their factor in the database. Build a recovery path
+   (backup codes or an admin-reset action) before making MFA mandatory.
+3. **`RESEND_API_KEY` empty + SPF/DKIM not set on the zone.** Invite emails stay off (link-sharing
+   fallback works). Set the key (locally + a CI/Workers secret) and configure SPF/DKIM for
+   `team@engelahealth.com` before emails send.
+4. **Leaked-password protection needs the Pro plan.** The `auth_leaked_password_protection`
+   advisor item = the "Prevent use of leaked passwords" toggle in Supabase Auth → Sign In /
+   Providers. Confirmed via Supabase docs: **available on Pro Plan and above only.** It cannot be
+   enabled on the current plan — park it until/if the project upgrades, or accept the residual risk
+   and rely on the 10-char minimum + MFA.
+5. **`www.engelahealth.com` resolves nowhere** (redirect to apex or serve directly, then wire it).
+6. **Region is `eu-west-1` (Ireland), not London.** Immutable post-creation; revisit before real
+   patient data.
+7. **Reports panel is still UI-only** (`ReportsPanel.tsx`): no upload, storage, or PDF parsing.
+8. **Branch protection on `main`** still unresolved (classic protection API 403'd for this private
+   repo; try the rulesets API or GitHub Pro).
+9. Six SECURITY DEFINER advisor warnings remain — all intentional and locked down (each revokes
+   from public/anon, grants to authenticated). `audit_client_id` (new in `0015`) is SECURITY
+   INVOKER, so it adds no warning.
 
-**Gate for this phase: sign-off persists and writes an audit entry.**
+## Phase 3 scope (per `CLAUDE.md` §5 — "Client depth")
 
-1. **Audited sign-off UI.** `weekly_reviews` already has `issued_at`/`issued_by`/`signed_at`/
-   `signed_by` columns (see `0001_init.sql`) and `ConsoleView.tsx` already renders them read-only
-   (search for "Sign-off" in that file). What's missing: a server action (follow the
-   `entry-actions.ts` pattern — verify clinical role + RLS access, write with the service role,
-   append to `audit_log`) that sets `signed_by`/`signed_at`, plus a button/form in
-   `ConsoleView.tsx`. A read-only **audit-trail screen** for the clinical team is also in scope —
-   `audit_log` already has full RLS (`audit_log_select_clinical`) and rows going back to Phase 1;
-   it just needs a page (`/console/audit`?) to read and render them.
-2. **Invite flow** (make `/create-account` real). Needs: `RESEND_API_KEY` populated, SPF/DKIM on
-   the zone (Open item #4), a signed invite-token table or reuse Supabase's own invite mechanism,
-   and wiring `CreateAccountOptions.tsx`'s two paths to actually send something. `/invite/[token]`
-   already exists as a route stub — check what's there before building parallel infrastructure.
-3. **TOTP MFA for clinical accounts.** Supabase Auth supports TOTP natively
-   (`supabase.auth.mfa.*`); needs `SUPABASE_JWT_SECRET` populated (Open item #3), a enrolment UI
-   (likely under `/console/account`), and a middleware check that clinical roles have MFA verified
-   before reaching `/console/*`. Confirm with Oliver whether this blocks existing demo accounts
-   from signing in — probably needs a grace path or the demo accounts get enrolled too.
-4. **RLS hardening + tests.** No test files exist yet (`pnpm test` reports "No test files found"
-   — `vitest` is configured, just unused). `scoring.ts` and the new `constants.ts` calendar
-   functions (`buildCalendar`, `calendarRange`) are pure and are the easiest first tests. For RLS,
-   the project's existing pattern is manual verification via direct REST calls (see "Verified
-   working" sections in this doc and prior ones) — a real test pass would mean scripting those
-   checks (e.g. a client fetching another client's `clients` row returns `[]`) rather than
-   re-verifying by hand every session.
+Gate: the client app is complete. Per `CLAUDE.md`: pillar detail, progress, tickable actions,
+"message Ollie", and the empty/paused/no-baseline/not-measured states + skeletons. Oliver has
+prioritised two client-app design changes within this phase, specced below. **Client-app safety
+rules are load-bearing (`CLAUDE.md` §2/§5): the client app never shows a raw lab value, disease
+marker, MRD, or a red/"flag"-styled warning; status is always colour + dot + text; estimates carry
+the "estimate, not a lab measure" caveat. Everything the client sees still comes only from
+`client_home_payload()` — do not add direct table access.**
 
-## Verified working this session (real DB/UI, not assumed)
+### 3a. Bottom navigation bar for the client app (design change)
 
-- All role logins still work; roster scoping by care team still correct.
-- CEP dashboard, blocks calendar, sessions breakdown and body map all render with live data for
-  Michael Mercer (strength trend 2,040 kg, up 13% since the start).
-- Client marked a session part done on `/app/program/[sessionId]`; audited as
-  `session_part.completed`.
-- Peer-invite consent gate: Priya invited Daniel to Leo's team, Daniel accepted, `care_team` row
-  landed with `consent_at = null`, Leo did not appear in Daniel's roster on reload.
-- Console sidebar responsive breakpoint: horizontal top bar below 56rem on `/console`,
-  `/console/programs`, `/console/search`; desktop collapse toggle still works and doesn't leak
-  into the mobile layout.
-- Client app header: logo + sign-out always visible on a 375px viewport; nav pills wrap.
-- `EngelaMark` renders correctly on the sign-in card, client header, and both sidebar states
-  (expanded wordmark, collapsed icon rail).
-- Production: `/signin` → 200, `/console/programs` unauthenticated → 307 to `/signin`.
-- `pnpm typecheck`, `pnpm lint`, `pnpm build` all green as of the last commit on `main`
-  (`b36a219`). `pnpm test` passes trivially (no test files yet — see Phase 2 item 4).
+**What:** move the client app's section navigation from the inline text links in the header to a
+**fixed bottom tab bar** (phone-first), matching the aesthetic of Oliver's reference screenshot: a
+clean bar pinned to the bottom on a cream/surface background, the **active tab in navy
+(`--c-ink`) with a small amber (`--c-amber`) dot** above/beside its label, inactive tabs in muted
+grey (`--c-text-tertiary`), Hanken (body) type. Keep the wordmark + Sign out in the top header;
+move only the section nav to the bottom.
+
+**Keep the current options — ignore the labels in the screenshot.** The screenshot shows
+`Week / Progress / Actions / Ollie`; those are from the old design demo and are a *different*
+information architecture (Progress, Actions and the "Ollie" chat are separate later features).
+**Use the four current client destinations:**
+
+- **Home** — the `/app` weekly at-a-glance view (label it "Home", or "Week" if Oliver prefers —
+  the hero already says "Here is your week"; this is the one screenshot label that happens to fit,
+  so confirm the wording with Oliver).
+- **Programme** — `/app/program`
+- **Community** — `/app/community`
+- **Account** — `/app/account`
+
+**Implementation notes:**
+
+- The bar is shared across all four routes, so it belongs in a **new client-segment layout**
+  (`src/app/app/layout.tsx` — does not exist yet) rather than in `ClientHomeView` alone. Today
+  `ClientHomeView.tsx` renders its own inline `<nav className={styles.clientNav}>` (lines ~35–45);
+  the program/community/account pages have their own headers. Extract a shared `<ClientTabBar>` (a
+  client component using `usePathname()` for the active state) and render it from the layout;
+  remove the per-page inline nav.
+- Fixed position at the bottom, safe-area aware: `padding-bottom: env(safe-area-inset-bottom)`.
+  Add matching bottom padding to page content so the bar never covers the last element (the home
+  page's disclaimer currently sits at the very bottom).
+- Accessibility: `aria-current="page"` on the active tab; the active state is dot + navy text
+  (never colour alone). Tokens only — no hard-coded colours/spacing.
+- Acceptance: on a 375px viewport all four tabs fit on one row without wrapping or clipping; the
+  active tab is unambiguous; content is never hidden behind the bar; the top header keeps only the
+  wordmark + Sign out.
+
+### 3b. Expandable / collapsible pillars (design change)
+
+**What:** on the client home, make each of the **three pillars an accordion**. Collapsed, a pillar
+shows its name, score and trend (as the cards do now). Expanded, it reveals **that pillar's detail
+metrics** — e.g. Movement → active sessions, grip strength, etc.; Nutrition → protein, etc.;
+Recovery and immunity → its metrics — each with its value, trend and estimate caveat. This
+replaces today's separate flat "Your numbers" section: the metrics move *into* their pillar.
+
+**Data — no backend change needed.** `client_home_payload()` already returns `home.metrics` where
+**every metric carries its `pillar`** (`ClientHomeVM.metrics[].pillar` in
+`src/features/client-home/data.ts`), plus `label`, `current`, `previous`, `unit`, `is_estimate`,
+`status` (already softened: `flag` arrives as `focus`), `history`, `target_def` and
+`why_it_matters`. So the accordion is a **pure client-side regroup**: group `home.metrics` by
+`pillar` under the matching `home.pillars` entry. No new query, no new projection, no new exposure.
+
+**Implementation notes:**
+
+- Client-facing pillar labels are **Movement / Nutrition / Recovery and immunity** (see
+  `PILLAR_LABELS` in `ClientHomeView.tsx`) — not the console's Exercise/Immune. Keep the client
+  labels.
+- Each pillar header is a `<button aria-expanded aria-controls>` with a chevron; recommend allowing
+  multiple open at once, default all collapsed (or auto-open the lowest-scoring pillar). Reuse the
+  existing `ClientMetrics`/metric-row rendering for the expanded content so the estimate caveat and
+  colour + dot + text status come along unchanged.
+- Keep the composite ring and "This week's focus" as they are; the three expandable pillars sit
+  where the pillar cards + "Your numbers" are today.
+- Acceptance: tapping a pillar expands/collapses it smoothly on a phone; every metric appears under
+  the correct pillar; estimate metrics still show the caveat; no raw lab/MRD/flag styling ever
+  appears; all values still trace to `client_home_payload()`.
+
+### 3c. The rest of Phase 3 (per `CLAUDE.md` §5)
+
+- **Progress** and **Actions** surfaces (the bottom bar makes room for these as future tabs, but
+  only Home/Programme/Community/Account ship now — see 3a).
+- **Tickable actions** for the client, **"message Ollie"**, and the **empty / paused /
+  no-baseline / not-measured states + skeletons** across the client app.
 
 ## Conventions to keep following
 
-- Migrations: new file per change, never edit an applied one, keep local `supabase/migrations/`
-  in sync with what's actually applied to the live project (apply via the Supabase MCP directly
-  to the live DB, then write the matching `.sql` file locally — both need to happen).
-- Every schema/infra change gets a `CHANGELOG.md` entry: what, why, migration/secret/DNS
-  implication.
+- Migrations: new file per change, never edit an applied one; apply to the live project via the
+  Supabase MCP **and** write the matching `.sql` locally; regenerate `database.types.ts` after
+  schema changes; re-verify RLS default-deny.
+- Every schema/infra change gets a `CHANGELOG.md` entry (what, why, migration/secret/DNS
+  implication). Handover docs are updated per phase (`docs/HANDOVER.md`).
 - No hard-coded colours/spacing — `src/styles/tokens.css` only.
 - Client app never shows a raw lab value, disease marker, MRD, or a red/flag-styled warning —
   enforced in the data layer (SECURITY DEFINER projections), not just hidden in the UI.
 - Status is always colour + dot + text (`StatusPill`), never colour alone.
-- British English, no em/en dashes in interface copy.
-- Console UI says "block", not "programme"; keep this consistent in any new programme-area copy.
-- Team-request writes always go through the consent rule above — never set `care_team.consent_at`
-  except from the client's own request or acceptance.
-- Use feature branches + PRs going forward (established this session with PR #1) — the
-  direct-to-main commits before that were pragmatic bootstrapping, not the intended long-term
-  flow. (One direct-to-main exception this session: a small navbar/logo fix, explicitly requested
-  pushed directly by Oliver — not a pattern to repeat by default.)
+- British English, no em/en dashes in interface copy. Console UI says "block", not "programme".
+- Team-request writes always go through the consent rule — never set `care_team.consent_at` except
+  from the client's own request or acceptance.
+- Feature branches + PRs; never push to `main`; CI must pass. Small, reviewable PRs.
