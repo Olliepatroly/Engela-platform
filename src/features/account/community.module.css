@@ -124,3 +124,25 @@
   line-height: var(--leading-small);
   color: var(--c-text-secondary);
 }
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-8);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client-lg);
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.emptyNote {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
+}

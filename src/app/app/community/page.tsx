@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CommunityView, getAccountInfo, getMyCareTeam } from "@/features/account";
+import { getThread } from "@/features/messages";
 import { ClientSearchView, getMyTeamRequests, searchDirectory } from "@/features/search";
 import styles from "@/features/account/account.module.css";
 
@@ -26,26 +27,15 @@ export default async function CommunityPage({
   const account = await getAccountInfo();
   if (!account) redirect("/signin");
 
-  const [team, results, requests] = await Promise.all([
+  const [team, results, requests, thread] = await Promise.all([
     getMyCareTeam(),
     searchDirectory(q),
     getMyTeamRequests(),
+    getThread(),
   ]);
 
   return (
-    <main className={styles.clientMain}>
-      <header className={styles.clientHeader}>
-        <Link className={styles.backLink} href="/app">
-          ← This week
-        </Link>
-        <Link className={styles.backLink} href="/app/program">
-          Your programme
-        </Link>
-        <Link className={styles.backLink} href="/app/account">
-          Your account
-        </Link>
-      </header>
-
+    <>
       <div>
         <h1 className={styles.heading}>The community</h1>
         <p className={styles.subhead}>
@@ -53,6 +43,12 @@ export default async function CommunityPage({
           working as one team around you.
         </p>
       </div>
+
+      {thread.available ? (
+        <Link className={styles.messageCta} href="/app/community/messages">
+          Message Ollie
+        </Link>
+      ) : null}
 
       <CommunityView team={team} />
 
@@ -62,6 +58,6 @@ export default async function CommunityPage({
         requests={requests}
         teamMemberIds={new Set(team.map((m) => m.clinician_id))}
       />
-    </main>
+    </>
   );
 }

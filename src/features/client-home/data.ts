@@ -25,7 +25,10 @@ export type ClientHomeVM = {
     target_def: { kind: "floor"; value: number } | { kind: "ceiling"; value: number } | { kind: "range"; min: number; max: number } | null;
     why_it_matters: string | null;
   }[];
-  actions: { id: string; text: string }[];
+  // `done` is present only once migration 0016 is applied (the payload adds it);
+  // until then it is undefined and the actions render as a plain, non-tickable
+  // list. See ClientActions for the graceful-degradation behaviour.
+  actions: { id: string; text: string; done?: boolean }[];
 };
 
 export async function getClientHome(): Promise<ClientHomeVM | null> {

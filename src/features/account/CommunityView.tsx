@@ -25,6 +25,20 @@ function initials(name: string): string {
 export function CommunityView({ team }: { team: CareTeamMember[] }) {
   const [state, action, pending] = useActionState(setConsent, initial);
 
+  if (team.length === 0) {
+    return (
+      <div className={styles.wrap}>
+        <div className={styles.empty}>
+          <p className={styles.emptyTitle}>Your team will appear here</p>
+          <p className={styles.emptyNote}>
+            As specialists join your care, you will see them here and can choose who follows your
+            progress. You can search for people to add below.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.wrap}>
       <ul className={styles.list}>

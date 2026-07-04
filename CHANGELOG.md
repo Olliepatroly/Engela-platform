@@ -2,6 +2,126 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-04 — Phase 3 (client depth): tickable actions + "message Ollie" (STAGED — migrations not yet applied)
+
+> **Action required before these features work: apply migrations `0016` and `0017` to the live
+> Supabase project (Supabase MCP or a linked CLI), then regenerate `src/types/database.types.ts`
+> (`pnpm db:types`).** This session could not apply migrations (MCP unauthorised, project not
+> linked), so the app code ships **staged with graceful degradation**: until the migrations are
+> applied, actions render as a plain (non-tickable) list and messaging is hidden. Verified live
+> that the degraded paths behave correctly, so production stays healthy between merge and apply.
+
+**What:**
+- **Tickable actions.** Migration `0016_client_action_checks.sql` adds a `client_action_checks`
+  table (one row per completed action; RLS SELECT = the client's own + the consented care team;
+  deny-by-default, no client write policy) and recreates `client_home_payload()` to report `done`
+  per visible action. Client UI (`ClientActions.tsx`) renders tickable checkboxes when the payload
+  carries `done`, else the previous plain list; ticking is optimistic and persisted via the
+  `toggleAction` server action (service-role write with an ownership check that the action is a
+  client-visible, non-flag action belonging to the caller; audited). Done = filled box + muted,
+  struck-through text (never colour alone).
+- **"Message Ollie" — two-way thread.** Migration `0017_messages.sql` adds a `messages` table
+  (client_id/sender_id/sender_role/body; RLS SELECT = the client's own thread + the consented care
+  team; deny-by-default, no client write policy) with a length-checked body. New `messages` feature
+  (`getThread`, `sendMessage`, `MessagesView`) and route `/app/community/messages` (a sub-view of
+  The community, so the Community tab stays active). The client sends via the `sendMessage`
+  server action (service-role insert stamping sender_role='client'; audited, no body in audit meta);
+  own messages sit right, the team's left. Message bodies are special-category, so they are stored
+  in-app under RLS, never emailed. A gated "Message Ollie" entry on the community page appears only
+  once messaging is live.
+
+**Safety:** both tables are RLS deny-by-default with SELECT scoped to the client and their consented
+care team; all writes are server-authoritative through the service role with explicit checks and
+audit entries, matching setConsent. **The new-table RLS has NOT been verified live** (tables not yet
+created) — add default-deny coverage to `tests/rls.test.ts` after applying the migrations. Verified
+live (staged/degraded): the home focus list stays a plain bullet list, the community page hides the
+messaging entry, and `/app/community/messages` shows a graceful "on its way" state with no server
+errors.
+
+**Files:** `supabase/migrations/0016_client_action_checks.sql`,
+`supabase/migrations/0017_messages.sql` (new, **not yet applied**);
+`src/features/client-home/actions.ts`, `ClientActions.tsx`, `ClientHomeView.tsx`, `data.ts`,
+`client-home.module.css`; `src/features/messages/*` (new);
+`src/app/app/community/messages/page.tsx` (new); `src/app/app/community/page.tsx`;
+`src/features/account/account.module.css`.
+
+**Migration/secret/DNS implications:** two new migrations to apply live (`0016`, `0017`);
+regenerate `database.types.ts` afterwards (the staged code uses untyped-client casts for the two new
+tables until then). No secret/DNS change.
+
+## 2026-07-04 — Phase 3 (client depth): empty / paused / no-baseline states + skeletons
+
+**What:**
+- **Route skeletons for the whole client app.** New `loading.tsx` for `/app`, `/app/program`,
+  `/app/program/[sessionId]`, `/app/community` and `/app/account`, each shaped to its route (home =
+  hero ring + three pillar rows, programme = list, account = forms, etc.). They render inside the
+  client-segment shell, so the top header and bottom tab bar stay put while the content streams. A
+  shared shimmer primitive (`Skel`) with `role="status"` + visually-hidden "Loading" text; the
+  global reduced-motion rule disables the shimmer automatically.
+- **Home states.** A protective "paused" banner when `client.status` is paused (framed as care,
+  not a setback, per `CLAUDE.md` §2/§6); a "no baseline yet" hero for a brand-new client with no
+  weekly review (welcome copy instead of an empty ring, pillars/focus hidden); a "Not measured yet"
+  treatment for a metric whose current reading is null (value replaced, footer becomes "Why this
+  matters"); and a soft empty state for "This week's focus" when a review exists but has no actions.
+- **Community empty state.** When a client has no care team yet, the community shows a friendly
+  "Your team will appear here" card instead of an empty list.
+
+**Why:** the empty/paused/no-baseline/not-measured states + skeletons bullet of Phase 3 §3c
+(`CLAUDE.md` §5, `docs/HANDOVER.md`).
+
+**Safety:** frontend only, no backend change; still 100% from `client_home_payload()`. Verified
+live as the demo client: the primary (data-present) home/community paths render unchanged and the
+community route skeleton was captured mid-navigation. The paused/no-baseline/not-measured branches
+are guarded conditionals (typecheck + lint clean) that the fully-populated demo client does not
+exercise.
+
+**Files:** `src/app/app/Skel.tsx` (new); `loading.tsx` in `src/app/app/`, `.../program/`,
+`.../program/[sessionId]/`, `.../community/`, `.../account/` (new); `client-shell.module.css`;
+`src/features/client-home/ClientHomeView.tsx`, `ClientMetrics.tsx`, `client-home.module.css`;
+`src/features/account/CommunityView.tsx`, `community.module.css`.
+
+**Migration/secret/DNS implications:** none.
+
+## 2026-07-04 — Phase 3 (client depth): bottom nav bar + expandable pillars
+
+**What:**
+- **Fixed bottom tab bar for the client app.** The section navigation moves out of the inline
+  header links into a fixed bottom tab bar (phone-first) with the four current destinations:
+  Home, Programme, Community, Account. The active tab is navy (`--c-ink`) with a small amber
+  (`--c-amber`) dot and `aria-current="page"`; inactive tabs are muted grey (`--c-text-tertiary`).
+  Never colour alone. The bar is safe-area aware (`env(safe-area-inset-bottom)`) and page content
+  carries matching bottom padding so nothing is hidden behind it.
+- **Shared client-segment shell.** A new `src/app/app/layout.tsx` owns the top header (wordmark +
+  Sign out) and the bottom `<ClientTabBar>` across every `/app` route, so the four pages now render
+  only their content. Removed the per-page inline navs/headers (home `clientNav`; the
+  program/community/account/session-detail back-link headers). The session-detail page keeps a
+  single "← Your programme" back-link (a sub-view of the Programme tab, which stays active on it).
+- **Expandable / collapsible pillars on the client home.** The three pillars are now an accordion.
+  Collapsed, each shows its name, score and how far it has come; expanded, it reveals that pillar's
+  own metrics (Movement, Nutrition, Recovery and immunity). This replaces the separate flat "Your
+  numbers" section: the metrics move into their pillar. Default all collapsed; multiple may be open
+  at once. Each header is a `<button aria-expanded aria-controls>` with a rotating chevron.
+
+**Why:** Phase 3 "client depth" per `CLAUDE.md` §5, and two client-app design changes Oliver
+prioritised (bottom nav, expandable pillars) as specced in `docs/HANDOVER.md` §3a/§3b. Confirmed
+with Oliver: the home tab is labelled "Home"; pillars default to all collapsed.
+
+**Safety:** no backend change. The accordion is a pure client-side regroup of `home.metrics` by
+each metric's existing `pillar`; everything the client sees still comes only from the SECURITY
+DEFINER `client_home_payload()`. The estimate caveat and softened colour + dot + text status
+(a `flag` arrives pre-softened to `focus`, never red) carry through unchanged. Verified live as the
+demo client: Movement expands to its six metrics with "THIS WEEK'S FOCUS" (not FLAG) on the low
+activity metric and the estimate caveat on Stamina; the active tab is navy + amber dot with
+`aria-current`; all four tabs fit one row at 375px; every tab renders a single `<main>`.
+
+**Files:** `src/app/app/layout.tsx` (new), `src/app/app/ClientTabBar.tsx` (new),
+`src/app/app/client-shell.module.css` (new); `src/features/client-home/ClientPillars.tsx` (new),
+`ClientHomeView.tsx`, `client-home.module.css`; `src/app/app/page.tsx`,
+`src/app/app/program/page.tsx`, `src/app/app/program/[sessionId]/page.tsx`,
+`src/app/app/community/page.tsx`, `src/app/app/account/page.tsx`.
+
+**Migration/secret/DNS implications:** none. Frontend only; no schema, RPC or projection change.
+
 ## 2026-07-04 — Hotfix: lazy env validation (500 on invites + create-account in production)
 
 **What:** `src/lib/env.ts` now validates the environment lazily (memoised resolver behind a

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { NameForm, PasswordForm, getAccountInfo } from "@/features/account";
-import { signOut } from "@/features/auth";
 import styles from "@/features/account/account.module.css";
 
 export const metadata: Metadata = {
@@ -17,18 +16,7 @@ export default async function ClientAccountPage() {
   if (!account) redirect("/signin");
 
   return (
-    <main className={styles.clientMain}>
-      <header className={styles.clientHeader}>
-        <Link className={styles.backLink} href="/app">
-          ← This week
-        </Link>
-        <form action={signOut}>
-          <button className={styles.withdrawBtn} type="submit">
-            Sign out
-          </button>
-        </form>
-      </header>
-
+    <>
       <div>
         <h1 className={styles.heading}>Your account</h1>
         <p className={styles.subhead}>
@@ -51,6 +39,6 @@ export default async function ClientAccountPage() {
         This is a rehabilitation monitoring tool. It supports your medical team; it does not
         replace clinical care.
       </p>
-    </main>
+    </>
   );
 }

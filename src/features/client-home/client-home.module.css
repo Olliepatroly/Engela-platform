@@ -1,86 +1,6 @@
-/* Client app home — phone-first, calm by design. Softer radii than the console. */
-
-.main {
-  max-width: 27rem;
-  margin: 0 auto;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  padding: var(--space-6) var(--space-4) var(--space-12);
-  background-color: var(--c-cream);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.wordmark {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.mark {
-  color: var(--c-amber);
-  flex-shrink: 0;
-}
-
-.wordmarkSerif {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.125rem;
-  color: var(--c-amber);
-}
-
-.wordmarkSans {
-  font-weight: 700;
-  font-size: 0.625rem;
-  letter-spacing: 0.18em;
-  color: var(--c-slate);
-}
-
-/* Nav pills on their own row so they can wrap on small screens without
-   pushing the sign-out button off the edge or crowding the logo. */
-.clientNav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: calc(-1 * var(--space-3));
-}
-
-.accountLink {
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--text-label);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--c-slate);
-  text-decoration: none;
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius-pill);
-}
-
-.accountLink:hover {
-  border-color: var(--c-slate);
-}
-
-.signOut {
-  padding: var(--space-1) var(--space-3);
-  font-family: var(--font-body);
-  font-size: var(--text-label);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--c-text-secondary);
-  background: none;
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-}
+/* Client app home — phone-first, calm by design. Softer radii than the console.
+   The header, section nav and Sign out live in the client-segment shell
+   (src/app/app/client-shell.module.css); this file owns the home content only. */
 
 /* ── Hero ─────────────────────────────────────────────────────────── */
 
@@ -148,24 +68,63 @@
   max-width: 20rem;
 }
 
-/* ── Pillars ──────────────────────────────────────────────────────── */
+/* ── Paused / no-baseline states ──────────────────────────────────── */
 
-.pillars {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
-}
-
-.pillarCard {
+/* A protective pause, framed as care, not a setback (CLAUDE.md §2/§6). */
+.pausedBanner {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-4) var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--c-amber-tint);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+}
+
+.pausedTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.pausedNote {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-action);
+}
+
+/* ── Pillars (accordion) ──────────────────────────────────────────── */
+
+.pillars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pillarItem {
   background-color: var(--c-surface);
   border: 1px solid var(--c-line);
   border-radius: var(--radius-client);
-  text-align: center;
+  overflow: hidden;
+}
+
+.pillarHeader {
+  display: flex;
   align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.pillarHeader:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: -2px;
 }
 
 .pillarScore {
@@ -173,10 +132,19 @@
   font-size: 1.5rem;
   line-height: 1;
   color: var(--c-slate);
+  flex-shrink: 0;
+}
+
+.pillarHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .pillarLabel {
-  font-size: var(--text-label);
+  font-size: var(--text-small);
   font-weight: 700;
   color: var(--c-ink);
 }
@@ -184,6 +152,26 @@
 .pillarBaseline {
   font-size: 0.625rem;
   color: var(--c-text-tertiary);
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--c-text-tertiary);
+  transition: transform 160ms ease;
+}
+
+.chevron[data-open="true"] {
+  transform: rotate(180deg);
+}
+
+.pillarPanel {
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.pillarEmpty {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
 }
 
 /* ── Focus list ───────────────────────────────────────────────────── */
@@ -208,6 +196,56 @@
   gap: var(--space-3);
 }
 
+.focusEmpty {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-action);
+}
+
+/* Tickable actions (once migration 0016 is live). Done = filled checkbox +
+   muted, struck-through text: multiple cues, never colour alone. */
+.checkList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.checkLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.checkInput {
+  margin-top: 0.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  accent-color: var(--c-amber);
+  cursor: pointer;
+}
+
+.checkText {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-action);
+}
+
+.checkTextDone {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-tertiary);
+  text-decoration: line-through;
+}
+
+.checkError {
+  margin-top: var(--space-2);
+  font-size: var(--text-label);
+  color: var(--c-text-secondary);
+}
+
 .focusItem {
   position: relative;
   padding-left: var(--space-6);
@@ -227,12 +265,7 @@
   border-radius: 50%;
 }
 
-/* ── Your numbers ─────────────────────────────────────────────────── */
-
-.numbers {
-  display: flex;
-  flex-direction: column;
-}
+/* ── Metric cards (rendered inside each expanded pillar) ──────────── */
 
 .metricList {
   list-style: none;
@@ -303,6 +336,13 @@
 .metricUnit {
   font-size: var(--text-label);
   font-weight: 400;
+  color: var(--c-text-tertiary);
+}
+
+/* Not-measured: a reading is expected but none is in yet. */
+.notMeasured {
+  font-size: var(--text-small);
+  font-weight: 600;
   color: var(--c-text-tertiary);
 }
 
