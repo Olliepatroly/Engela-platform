@@ -2,6 +2,64 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-04 — Phase 2 clinical core: audited sign-off, audit trail, invite flow, TOTP MFA, tests
+
+**What:**
+- **Audited sign-off (the Phase 2 gate).** The consultant (or admin) signs off the selected
+  weekly review from a confirm-and-sign form in the console (`SignOffPanel.tsx`,
+  `signOffReview` in `entry-actions.ts`). Signing writes `signed_by`/`signed_at` on
+  `weekly_reviews` and appends `weekly_review.signed_off` to the append-only `audit_log`;
+  a signed review cannot be signed twice and there is no un-sign. Other clinical roles see
+  the sign-off record read-only.
+- **Audit trail screen** (`/console/audit`): the whole `audit_log`, newest first, with actor
+  names, humanised action labels, client resolution (a client outside the viewer's care team
+  shows as exactly that, no name) and compact detail. Read-only; served by the existing
+  `audit_log_select_clinical` policy.
+- **Invite flow, live end to end.** Migration `0014_invites_and_account_requests.sql`:
+  `invites` (single-use signed links; only the SHA-256 token hash is stored) and
+  `account_requests` (from the public create-account page), both RLS deny-by-default with
+  clinical-only SELECT and server-only writes. New `/console/invites` screen: send an
+  invitation (consultant/admin can invite any role, other clinical roles invite clients
+  only), follow up create-account requests, revoke pending invites, track status.
+  `/invite/[token]` accepts: the account is created with the invited role (the only way a
+  role is ever assigned), a client invite carries optional MRN/diagnosis and the client's
+  acceptance itself grants consent for the inviter's care-team membership (consent rule
+  respected), and the new member is signed straight in. `/create-account` now files real
+  requests. Invitation email goes out via Resend (`src/lib/email.ts`) when
+  `RESEND_API_KEY` is set; until then the console shows the link to share personally.
+- **TOTP two-step verification for clinical accounts.** Enrolment card on
+  `/console/account` (`MfaSettings.tsx`: QR + manual key, confirm with a code, turn off
+  again); sign-in gains a code step when the account has a verified factor
+  (`verifyMfaCode`); the middleware holds sessions still at assurance level 1 away from
+  `/console`/`/app` on `/signin/mfa` until the code is presented. Enrolment and removal are
+  audited (`mfa.enrolled` / `mfa.unenrolled`). Grace path: accounts without a factor sign
+  in as before (demo accounts unaffected); mandatory enrolment for clinical roles is a
+  follow-up decision. `SUPABASE_JWT_SECRET` turned out not to be needed: assurance levels
+  are read through the Supabase client, not by verifying JWTs by hand.
+- **Tests.** Vitest units for the scoring engine and the blocks calendar
+  (`scoring.test.ts`, `constants.test.ts`), and a scripted RLS suite (`tests/rls.test.ts`)
+  that replaces the by-hand REST checks: client sees only their own record, clinical
+  tables return nothing to clients, `client_home_payload` carries no disease markers,
+  cross-client isolation, the consent gate (paused sharing hides the client), write
+  refusal, and anonymous gets nothing. Runs against the live project when
+  `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`/`DEMO_PASSWORD` are present (`.env.local` is read
+  automatically) and skips cleanly otherwise, so CI stays green without secrets.
+
+**Why:** Phase 2 per CLAUDE.md §5: sign-off must persist and write an audit entry (verified
+live: Beatrice Cole week 14 signed by Dr Emily Hartley, audit row written), onboarding must
+be invite-only with no self-registered roles, clinical accounts need MFA, and the RLS
+boundary needed a repeatable test pass.
+
+**Migration/secret/DNS implications:**
+- Migration `0014_invites_and_account_requests.sql` applied to the live project and
+  mirrored locally; `database.types.ts` regenerated.
+- `RESEND_API_KEY` still empty (Open item): invite emails stay off, link-sharing fallback
+  active. SPF/DKIM on the zone still needed before emails go out. Add a `RESEND_API_KEY`
+  secret to CI/Workers when ready — no code change needed.
+- `DEMO_PASSWORD` added to `.env.local` (gitignored) for the RLS suite.
+- Verified with a throwaway invite acceptance against the live DB; all test rows (user,
+  client, care team, invite, request, audit entries) were removed afterwards.
+
 ## 2026-07-03 — Programmes split into four pages, calendar blocks, redrawn body figures
 
 **What:**
