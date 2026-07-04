@@ -163,8 +163,21 @@ sign-off button can be demoed.
 
 ## Open items (carried over + new)
 
-1. **Merge PR #2.** Phase 2 is not in production until this merges and deploys. Decide on a second
-   reviewer for the data-access changes first (`CLAUDE.md` §7 #6).
+0. **Apply Phase 3 migrations `0016` + `0017`, then regenerate types.** Phase 3 shipped on branch
+   `feat/phase-3-client-depth` (bottom nav, expandable pillars, empty/paused/skeleton states, plus
+   tickable actions and the "message Ollie" thread). The two data-backed features are **staged**:
+   their migrations (`0016_client_action_checks.sql`, `0017_messages.sql`) were **not applied** this
+   session (Supabase MCP was unauthorised and the project is not linked to the local CLI), so the
+   app ships with graceful degradation (actions render as a plain list; messaging is hidden). To
+   finish them: authorise the Supabase MCP (or link the CLI), apply `0016` and `0017`, run
+   `pnpm db:types`, optionally switch the untyped-client casts in `src/features/client-home/actions.ts`
+   and `src/features/messages/*` to the typed client, and **add default-deny RLS coverage for both
+   new tables to `tests/rls.test.ts`** (their RLS has not been verified live). The console-side
+   reply UI for the message thread is a future PR. Note PR #2 and PR #3 (env fix) are already merged
+   to `main` — items 1 below is historical.
+
+1. **Merge PR #2.** *(Done — PR #2 and the env-fix PR #3 are both merged to `main`.)* Kept for
+   history: decide on a second reviewer for data-access changes (`CLAUDE.md` §7 #6) on future PRs.
 2. **MFA is opt-in with a grace path; decide the policy.** `CLAUDE.md` §3 says clinical accounts
    *require* TOTP MFA. The build ships a grace path (no factor = sign in as before) so demo
    accounts keep working. Recommendation (unchanged after discussion): keep it **mandatory** and
