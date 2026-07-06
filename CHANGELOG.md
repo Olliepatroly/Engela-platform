@@ -2,6 +2,47 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-06 — Account-request approval routing (approver email + one-step approve)
+
+**What:**
+- **Approver routing.** A new create-account request now emails the approver
+  (`ACCOUNT_REQUEST_APPROVER_EMAIL`, default `oliver@engelaras.co.uk`) with the requester's
+  name/email/path and a link to `/console/invites`. Delivery needs `RESEND_API_KEY`; without it
+  the send is a silent no-op and the request still lands on the console, so nothing is ever lost.
+  Whether the approver was notified is recorded in the `account_request.created` audit meta.
+- **One-step approval.** Each open request on `/console/invites` gains "Approve and invite":
+  issues the signed single-use invitation to the requester (emailed when Resend is configured,
+  link shown for personal sharing either way), marks the request handled, and appends
+  `account_request.approved` (email, role, invite id) to the audit trail. A client-path request
+  can only be approved as a client; for team requests the approver picks the role, authorised by
+  the same `invitableRoles` rule as the manual form. "Use in form" (to add MRN/diagnosis first)
+  and "Mark handled" (quiet decline) remain.
+- **Shared invite path.** The invite-issuing core (duplicate checks, token hash, email, audit) is
+  one helper (`issueInvite`) used by both the manual form and approval, so the flows cannot drift.
+
+**Why:** Oliver's request (2026-07-06): route account requests to `oliver@engelaras.co.uk` for
+approval, with approval sending the account creation. Approval = invitation remains the only way
+an account is created (invite-only onboarding unchanged).
+
+**Delivery note:** `RESEND_API_KEY` is still empty in every environment (open item #3), so no
+email actually sends yet, approver notification included; the audit records
+`approver_notified: false` honestly. Set the key (local, GitHub Actions, Worker secret) and
+SPF/DKIM for the from-address to turn delivery on. Also spotted while verifying: the 4 Jul invite
+to Jodi Talmage shows `email_sent: false`, so it was never emailed; the link needs sharing
+personally or reissuing once email is live.
+
+**Verified live locally:** filed a request from `/create-account` (public) → appeared on
+`/console/invites` → approved as the demo consultant → invitation created (pending, 7-day expiry)
+and the request marked handled → full audit chain confirmed (`account_request.created` with
+`approver_notified:false`, `invite.created`, `account_request.approved`) → test invite revoked.
+
+**Files:** `src/features/invites/actions.ts` (issueInvite, approveRequest, approver notification),
+`src/features/invites/InvitesView.tsx`, `invites.module.css`, `src/lib/env.ts`, `.env.example`.
+
+**Migration/secret/DNS implications:** no schema change. New optional env var
+`ACCOUNT_REQUEST_APPROVER_EMAIL` (defaults to `oliver@engelaras.co.uk`); add it alongside
+`RESEND_API_KEY` to CI/Worker secrets when email goes live.
+
 ## 2026-07-06 — Clinical screening flags (SBAR + voice notes), PAR-Q health profile, session notes, QR — and migrations 0016-0019 applied live
 
 **Migrations applied to the live project this session (Supabase MCP re-authorised):**

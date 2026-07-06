@@ -78,6 +78,105 @@ const createInviteSchema = z.object({
   diagnosis: z.string().trim().max(200).optional(),
 });
 
+type IssueInviteInput = {
+  fullName: string;
+  email: string;
+  role: Role;
+  mrn?: string;
+  diagnosis?: string;
+  invitedBy: string;
+};
+
+type IssueInviteResult =
+  | { error: string }
+  | { error: null; inviteId: string; inviteUrl: string; emailSent: boolean };
+
+/**
+ * The single path that issues an invitation: duplicate checks, token issue
+ * (only the SHA-256 hash is stored), the email to the invitee when Resend is
+ * configured, and the audit entry. Used by the manual invite form and by
+ * request approval, so both flows carry identical safeguards. Callers have
+ * already authorised the inviter for the role.
+ */
+async function issueInvite(input: IssueInviteInput): Promise<IssueInviteResult> {
+  const { fullName, email, role, invitedBy } = input;
+  const admin = getAdminClient();
+
+  const { data: existingProfile } = await admin
+    .from("profiles")
+    .select("id")
+    .ilike("email", email)
+    .maybeSingle();
+  if (existingProfile) {
+    return { error: "That email already has an account." };
+  }
+
+  const { data: pending } = await admin
+    .from("invites")
+    .select("id")
+    .ilike("email", email)
+    .is("accepted_at", null)
+    .is("revoked_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+  if (pending) {
+    return {
+      error: "A live invitation already exists for that email. Revoke it first to send a new one.",
+    };
+  }
+
+  const token = newToken();
+  const tokenHash = await sha256Hex(token);
+  const expiresAt = new Date(Date.now() + INVITE_VALID_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: invite, error } = await admin
+    .from("invites")
+    .insert({
+      email,
+      full_name: fullName,
+      role,
+      token_hash: tokenHash,
+      invited_by: invitedBy,
+      mrn: role === "client" ? input.mrn || null : null,
+      diagnosis: role === "client" ? input.diagnosis || null : null,
+      expires_at: expiresAt,
+    })
+    .select("id")
+    .single();
+  if (error || !invite) {
+    return { error: "Could not create the invitation. Try again." };
+  }
+
+  const inviteUrl = `${await siteOrigin()}/invite/${token}`;
+
+  const emailSent = await sendEmail({
+    to: email,
+    subject: "Your invitation to Engela Health",
+    text: [
+      `Hello ${fullName},`,
+      "",
+      "You have been invited to join the Engela Health rehabilitation platform.",
+      "",
+      `Accept your invitation here: ${inviteUrl}`,
+      "",
+      `The link is personal to you and valid for ${INVITE_VALID_DAYS} days.`,
+      "If you were not expecting this invitation, you can ignore this email.",
+      "",
+      "Engela Health",
+    ].join("\n"),
+  });
+
+  await admin.from("audit_log").insert({
+    actor_id: invitedBy,
+    action: "invite.created",
+    entity: "invites",
+    entity_id: invite.id,
+    meta: { email, role, email_sent: emailSent },
+  });
+
+  return { error: null, inviteId: invite.id, inviteUrl, emailSent };
+}
+
 /**
  * Create a signed invite: a single-use link valid for seven days. Only the
  * SHA-256 hash of the token is stored. If Resend is configured the invite is
@@ -104,90 +203,97 @@ export async function createInvite(_prev: InviteState, formData: FormData): Prom
     return { error: "Clinical team invitations go through the rehab lead.", success: null, ...none };
   }
 
-  const admin = getAdminClient();
-
-  const { data: existingProfile } = await admin
-    .from("profiles")
-    .select("id")
-    .ilike("email", email)
-    .maybeSingle();
-  if (existingProfile) {
-    return { error: "That email already has an account.", success: null, ...none };
-  }
-
-  const { data: pending } = await admin
-    .from("invites")
-    .select("id")
-    .ilike("email", email)
-    .is("accepted_at", null)
-    .is("revoked_at", null)
-    .gt("expires_at", new Date().toISOString())
-    .maybeSingle();
-  if (pending) {
-    return {
-      error: "A live invitation already exists for that email. Revoke it first to send a new one.",
-      success: null,
-      ...none,
-    };
-  }
-
-  const token = newToken();
-  const tokenHash = await sha256Hex(token);
-  const expiresAt = new Date(Date.now() + INVITE_VALID_DAYS * 24 * 60 * 60 * 1000).toISOString();
-
-  const { data: invite, error } = await admin
-    .from("invites")
-    .insert({
-      email,
-      full_name: fullName,
-      role,
-      token_hash: tokenHash,
-      invited_by: caller.user.id,
-      mrn: role === "client" ? parsed.data.mrn || null : null,
-      diagnosis: role === "client" ? parsed.data.diagnosis || null : null,
-      expires_at: expiresAt,
-    })
-    .select("id")
-    .single();
-  if (error || !invite) {
-    return { error: "Could not create the invitation. Try again.", success: null, ...none };
-  }
-
-  const inviteUrl = `${await siteOrigin()}/invite/${token}`;
-
-  const emailSent = await sendEmail({
-    to: email,
-    subject: "Your invitation to Engela Health",
-    text: [
-      `Hello ${fullName},`,
-      "",
-      "You have been invited to join the Engela Health rehabilitation platform.",
-      "",
-      `Accept your invitation here: ${inviteUrl}`,
-      "",
-      `The link is personal to you and valid for ${INVITE_VALID_DAYS} days.`,
-      "If you were not expecting this invitation, you can ignore this email.",
-      "",
-      "Engela Health",
-    ].join("\n"),
+  const issued = await issueInvite({
+    fullName,
+    email,
+    role,
+    mrn: parsed.data.mrn,
+    diagnosis: parsed.data.diagnosis,
+    invitedBy: caller.user.id,
   });
+  if (issued.error != null) return { error: issued.error, success: null, ...none };
+
+  revalidatePath("/console/invites");
+  return {
+    error: null,
+    success: issued.emailSent
+      ? `Invitation emailed to ${email}. The link below is a copy you can share directly.`
+      : `Invitation created. Email sending is not configured yet, so share the link below with ${fullName} personally (it signs them straight in, treat it like a password).`,
+    inviteUrl: issued.inviteUrl,
+    emailSent: issued.emailSent,
+  };
+}
+
+const approveRequestSchema = z.object({
+  requestId: z.string().uuid(),
+  role: z.enum(["consultant", "nurse", "cep", "physio", "client"]),
+});
+
+/**
+ * Approve a create-account request in one step: issues the signed invitation
+ * to the requester (emailed when Resend is configured, link shown either way),
+ * marks the request handled, and audits the approval. The approver chooses the
+ * role for team requests; a client request always becomes a client invite.
+ * Role authorisation is identical to the manual form (invitableRoles).
+ */
+export async function approveRequest(
+  _prev: InviteState,
+  formData: FormData,
+): Promise<InviteState> {
+  const none = { inviteUrl: null, emailSent: false };
+  const parsed = approveRequestSchema.safeParse({
+    requestId: formData.get("requestId"),
+    role: formData.get("role"),
+  });
+  if (!parsed.success) return { error: "Check the request and role.", success: null, ...none };
+
+  const caller = await requireClinicalUser();
+  if (!caller) return { error: "Only the clinical team can approve requests.", success: null, ...none };
+  if (!invitableRoles(caller.role).includes(parsed.data.role)) {
+    return { error: "Clinical team invitations go through the rehab lead.", success: null, ...none };
+  }
+
+  const admin = getAdminClient();
+  const { data: request } = await admin
+    .from("account_requests")
+    .select("id, path, full_name, email, status")
+    .eq("id", parsed.data.requestId)
+    .maybeSingle();
+  if (!request) return { error: "Unknown request.", success: null, ...none };
+  if (request.status !== "new") {
+    return { error: "That request is already handled.", success: null, ...none };
+  }
+  // A client-path request can only ever become a client account.
+  if (request.path === "client" && parsed.data.role !== "client") {
+    return { error: "A client request can only be approved as a client.", success: null, ...none };
+  }
+
+  const issued = await issueInvite({
+    fullName: request.full_name,
+    email: request.email.toLowerCase(),
+    role: parsed.data.role,
+    invitedBy: caller.user.id,
+  });
+  if (issued.error != null) return { error: issued.error, success: null, ...none };
+
+  await admin.from("account_requests").update({ status: "handled" }).eq("id", request.id);
 
   await admin.from("audit_log").insert({
     actor_id: caller.user.id,
-    action: "invite.created",
-    entity: "invites",
-    entity_id: invite.id,
-    meta: { email, role, email_sent: emailSent },
+    action: "account_request.approved",
+    entity: "account_requests",
+    entity_id: request.id,
+    meta: { email: request.email, role: parsed.data.role, invite_id: issued.inviteId },
   });
 
   revalidatePath("/console/invites");
   return {
     error: null,
-    success: emailSent
-      ? `Invitation emailed to ${email}. The link below is a copy you can share directly.`
-      : `Invitation created. Email sending is not configured yet, so share the link below with ${fullName} personally (it signs them straight in, treat it like a password).`,
-    inviteUrl,
-    emailSent,
+    success: issued.emailSent
+      ? `Approved. The invitation has been emailed to ${request.email}.`
+      : `Approved and the invitation is created. Email sending is not configured yet, so share the link below with ${request.full_name} personally (it signs them straight in, treat it like a password).`,
+    inviteUrl: issued.inviteUrl,
+    emailSent: issued.emailSent,
   };
 }
 
@@ -302,12 +408,32 @@ export async function requestAccount(
       .single();
     if (error || !created) return { error: "Something went wrong. Try again.", success: null };
 
+    // Route the request to the approver. Delivery needs RESEND_API_KEY; the
+    // request is on /console/invites regardless, so a failed send only means
+    // no notification, never a lost request.
+    const approverNotified = await sendEmail({
+      to: env.ACCOUNT_REQUEST_APPROVER_EMAIL,
+      subject: `Account request: ${fullName} (${path === "team" ? "clinical team" : "client"})`,
+      text: [
+        "A new account request needs your approval.",
+        "",
+        `Name: ${fullName}`,
+        `Email: ${email}`,
+        `Path: ${path === "team" ? "Clinical team" : "Client"}${requestedRole ? ` (${requestedRole})` : ""}`,
+        "",
+        `Approve or decline it here: ${env.NEXT_PUBLIC_SITE_URL}/console/invites`,
+        "",
+        "Approving sends them a personal, single-use invitation link (valid seven days).",
+        "Nobody gets an account without an invitation.",
+      ].join("\n"),
+    });
+
     await admin.from("audit_log").insert({
       actor_id: null,
       action: "account_request.created",
       entity: "account_requests",
       entity_id: created.id,
-      meta: { path },
+      meta: { path, approver_notified: approverNotified },
     });
   }
 

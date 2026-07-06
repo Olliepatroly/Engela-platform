@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import {
+  approveRequest,
   createInvite,
   revokeInvite,
   markRequestHandled,
@@ -70,6 +71,70 @@ function MarkHandledButton({ requestId }: { requestId: string }) {
         {pending ? "Saving…" : "Mark handled"}
       </button>
     </form>
+  );
+}
+
+/**
+ * One-step approval: issues the signed invitation to the requester, marks the
+ * request handled and records the approval in the audit trail. A client
+ * request is always approved as a client; for a team request the approver
+ * picks the role (same authorisation as the manual form).
+ */
+function ApproveRequestControl({
+  request,
+  allowedRoles,
+}: {
+  request: AccountRequestVM;
+  allowedRoles: string[];
+}) {
+  const [state, action, pending] = useActionState(approveRequest, inviteInitial);
+
+  const teamRoles = allowedRoles.filter((r) => r !== "client");
+  const isTeam = request.path === "team";
+  const defaultRole = isTeam
+    ? (REQUESTED_ROLE_VALUES[request.requestedRole ?? ""] ?? teamRoles[0] ?? "client")
+    : "client";
+  const canApprove = !isTeam || teamRoles.length > 0;
+
+  if (!canApprove) return null;
+
+  return (
+    <div className={styles.approveWrap}>
+      <form action={action} className={styles.rowActions}>
+        <input type="hidden" name="requestId" value={request.id} />
+        {isTeam ? (
+          <select className={styles.roleSelect} name="role" defaultValue={defaultRole}>
+            {teamRoles.map((r) => (
+              <option key={r} value={r}>
+                {ROLE_LABELS[r] ?? r}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input type="hidden" name="role" value="client" />
+        )}
+        <button className={styles.approveButton} type="submit" disabled={pending}>
+          {pending ? "Approving…" : "Approve and invite"}
+        </button>
+      </form>
+      {state.error ? (
+        <p className={styles.error} role="alert">
+          {state.error}
+        </p>
+      ) : null}
+      {state.success ? <p className={styles.success}>{state.success}</p> : null}
+      {state.inviteUrl ? (
+        <div className={styles.linkBox}>
+          <span className={styles.label}>Invitation link</span>
+          <input
+            className={styles.linkInput}
+            readOnly
+            value={state.inviteUrl}
+            onFocus={(e) => e.currentTarget.select()}
+          />
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -195,33 +260,37 @@ export function InvitesView({
       <section className={styles.panel} aria-label="Account requests">
         <h2 className={styles.panelTitle}>Account requests</h2>
         <p className={styles.panelNote}>
-          Requests from the create-account page. Pull one into the form above to invite them, then
-          mark it handled.
+          Requests from the create-account page, routed to the approver by email. Approve one to
+          send the invitation in a single step, use the form above if you want to add an MRN or
+          diagnosis first, or mark it handled to decline quietly.
         </p>
         {requests.length === 0 ? (
           <p className={styles.emptyNote}>No open requests.</p>
         ) : (
           <div className={styles.rows}>
             {requests.map((request) => (
-              <div key={request.id} className={styles.row}>
-                <div className={styles.rowMain}>
-                  <span className={styles.rowName}>{request.fullName}</span>
-                  <span className={styles.rowMeta}>
-                    {request.email} · {request.path === "team" ? "Clinical team" : "Client"}
-                    {request.requestedRole ? ` · ${request.requestedRole}` : ""} ·{" "}
-                    {formatDate(request.createdAt)}
-                  </span>
+              <div key={request.id} className={styles.requestRow}>
+                <div className={styles.row}>
+                  <div className={styles.rowMain}>
+                    <span className={styles.rowName}>{request.fullName}</span>
+                    <span className={styles.rowMeta}>
+                      {request.email} · {request.path === "team" ? "Clinical team" : "Client"}
+                      {request.requestedRole ? ` · ${request.requestedRole}` : ""} ·{" "}
+                      {formatDate(request.createdAt)}
+                    </span>
+                  </div>
+                  <div className={styles.rowActions}>
+                    <button
+                      className={styles.smallButton}
+                      type="button"
+                      onClick={() => prefillFrom(request)}
+                    >
+                      Use in form
+                    </button>
+                    <MarkHandledButton requestId={request.id} />
+                  </div>
                 </div>
-                <div className={styles.rowActions}>
-                  <button
-                    className={styles.smallButton}
-                    type="button"
-                    onClick={() => prefillFrom(request)}
-                  >
-                    Use in form
-                  </button>
-                  <MarkHandledButton requestId={request.id} />
-                </div>
+                <ApproveRequestControl request={request} allowedRoles={allowedRoles} />
               </div>
             ))}
           </div>
