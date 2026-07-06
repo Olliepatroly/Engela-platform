@@ -197,3 +197,57 @@
   font-size: var(--text-small);
   color: var(--c-text-tertiary);
 }
+
+/* ── Request approval ─────────────────────────────────────────────── */
+
+.requestRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.requestRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.approveWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.approveButton {
+  padding: var(--space-1) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--c-ink);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.approveButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.roleSelect {
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  color: var(--c-ink);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+  background-color: var(--c-surface);
+}
+
+/* Inside a request row the divider belongs to the outer wrapper. */
+.requestRow .row {
+  border-bottom: none;
+  padding-bottom: 0;
+}

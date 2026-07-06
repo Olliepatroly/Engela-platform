@@ -32,6 +32,10 @@ const schema = z.object({
   // Resend — transactional email for invites (optional until invites go live).
   RESEND_API_KEY: opt,
   RESEND_FROM_EMAIL: z.string().email().default("team@engelahealth.com"),
+
+  // Where new create-account requests are routed for approval. Delivery needs
+  // RESEND_API_KEY; without it the request still lands on /console/invites.
+  ACCOUNT_REQUEST_APPROVER_EMAIL: z.string().email().default("oliver@engelaras.co.uk"),
 });
 
 export type Env = z.infer<typeof schema>;
