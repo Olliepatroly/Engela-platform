@@ -842,3 +842,84 @@
   opacity: 0.7;
   cursor: default;
 }
+
+/* ── Session notes panel ──────────────────────────────────────────── */
+
+.notesPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.notesHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.raiseFlagLink {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-slate);
+  text-decoration: none;
+}
+
+.raiseFlagLink:hover {
+  text-decoration: underline;
+}
+
+.notesForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.notesInput {
+  padding: var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-ink);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+  resize: vertical;
+}
+
+.notesInput:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 1px;
+}
+
+.notesSave {
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-slate);
+  background: none;
+  border: 1px solid var(--c-slate);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.notesSave:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.notesReadOnly {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
+  white-space: pre-wrap;
+}

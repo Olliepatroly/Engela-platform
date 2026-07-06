@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BodyMap, MUSCLE_LABELS, StatusPill } from "@/components/ui";
 import { AddSessionExerciseForm } from "./BuilderPanels";
 import { CategoryToggle } from "./CategoryToggle";
+import { SessionNotesPanel } from "./SessionNotesPanel";
 import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
@@ -151,6 +152,13 @@ function SessionBreakdown({
           </aside>
         </div>
       </section>
+
+      <SessionNotesPanel
+        sessionId={detail.id}
+        clientId={clientId}
+        notes={detail.notes}
+        canEdit={canComplete}
+      />
 
       {canBuild ? <AddSessionExerciseForm sessionId={detail.id} library={library} /> : null}
     </>

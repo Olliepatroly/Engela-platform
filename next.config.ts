@@ -14,7 +14,8 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+  // microphone=(self): the client app records voice-note concerns in-page.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=(), payment=()" },
 ];
 
 const nextConfig: NextConfig = {
@@ -22,6 +23,13 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 86400,
+  },
+  experimental: {
+    serverActions: {
+      // Client voice-note concerns upload audio through a server action;
+      // the bucket itself caps files at 10 MB.
+      bodySizeLimit: "12mb",
+    },
   },
   async headers() {
     const headers = [

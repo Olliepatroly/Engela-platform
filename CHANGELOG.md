@@ -2,6 +2,59 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-06 — Clinical screening flags (SBAR + voice notes), PAR-Q health profile, session notes, QR — and migrations 0016-0019 applied live
+
+**Migrations applied to the live project this session (Supabase MCP re-authorised):**
+`0016_client_action_checks`, `0017_messages` (the two staged Phase 3 migrations — tickable
+actions and message Ollie are now LIVE), plus the two new ones below.
+`src/types/database.types.ts` regenerated; the untyped-client casts from the staged round were
+replaced with typed clients. Security advisors re-checked: no new warnings (only the six known
+intentional SECURITY DEFINER items and the Pro-plan leaked-password toggle).
+
+**What:**
+- **Tiered clinical flags with SBAR** (migration `0018_clinical_flags.sql`, `src/features/flags/`,
+  `/console/flags` + a Flags sidebar link). A flag is minor or major (colour + dot + text, never
+  colour alone). A clinician-raised flag REQUIRES the full SBAR: Situation, Background (prefilled
+  server-side from the client's record + health profile, including the PAR-Q result), Assessment
+  (questions asked, readings and observations), Recommendation. Flags queue newest-first with
+  mark-reviewed (audited). DB-level constraints back the server rules (clinician flags must carry
+  SBAR; client flags must carry a voice note or description).
+- **Client-raised concerns with voice notes.** After a self-conducted session a client can raise a
+  concern from the session page: tier choice in supportive wording, then a voice note (MediaRecorder,
+  up to 2 minutes, private `voice-notes` bucket, no storage policies — service-role upload and
+  short-lived signed playback URLs only) or a typed description if the microphone is unavailable.
+  The 999 guidance is always visible: for anything serious call 999 immediately; the form does not
+  alert emergency services. The team hears the note on `/console/flags`.
+  **Load-bearing (CLAUDE.md §2): the RLS SELECT lets a client read only concerns they raised
+  themselves — a clinician-raised flag is never client-visible. Verified by a live RLS test.**
+- **PAR-Q + clinical details on the account** (migration `0019_client_health_profiles.sql`,
+  `src/features/screening/`, `/app/parq`). Seven yes/no readiness questions, prompted at sign-on by
+  a skippable banner on the client home; any yes marks the screening positive for team follow-up
+  (framed supportively, never as a barrier). Answers live on `client_health_profiles` with the
+  clinical `details` the team keeps; the account page shows PAR-Q status + details read-only.
+  Decision (Oliver, 2026-07-06): PDF upload/auto-extraction deferred — details come from the PAR-Q
+  and the team; auto-extraction would need a third-party processor decision first.
+- **Session notes for the training team** (`SessionNotesPanel`, `saveSessionNotes`): editable
+  screening/observation notes on the console session breakdown (CEP/physio/admin; read-only for
+  the rest), audited, with a "Raise a clinical flag" link that lands on the SBAR form with client +
+  session prefilled.
+- **Join QR code**: `docs/assets/qr-join-engelahealth.{svg,png}` → https://engelahealth.com/create-account
+  (the invite-request path), for print/share.
+- **Config**: `Permissions-Policy` now allows `microphone=(self)` (the voice recorder needs it —
+  it was fully blocked before); server-action body limit raised to 12 MB for audio uploads (the
+  bucket itself caps files at 10 MB).
+
+**Verified live end to end** (demo client + demo CEP): PAR-Q completed → banner cleared, account
+shows completion; tick persisted across reload; message sent and rendered; client major concern
+(typed fallback) → appeared on `/console/flags` → SBAR flag raised with Background prefilled
+(including the fresh PAR-Q result) → concern marked reviewed; session notes saved. Audit rows for
+every one of those actions confirmed in `audit_log`. RLS suite extended and green against the live
+project (33 passed): own-scoping on all four new tables, direct writes refused, anon denied,
+client-never-sees-clinician-flags, voice bucket refuses direct listing/upload.
+
+**Migration/secret/DNS implications:** migrations `0016`-`0019` are applied live and mirrored in
+`supabase/migrations/`. New private storage bucket `voice-notes`. No secret/DNS change.
+
 ## 2026-07-04 — Phase 3 (client depth): tickable actions + "message Ollie" (STAGED — migrations not yet applied)
 
 > **Action required before these features work: apply migrations `0016` and `0017` to the live

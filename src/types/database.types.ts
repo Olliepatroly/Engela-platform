@@ -153,6 +153,84 @@ export type Database = {
           },
         ]
       }
+      client_action_checks: {
+        Row: {
+          action_id: string
+          checked_at: string
+          client_id: string
+        }
+        Insert: {
+          action_id: string
+          checked_at?: string
+          client_id: string
+        }
+        Update: {
+          action_id?: string
+          checked_at?: string
+          client_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_action_checks_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: true
+            referencedRelation: "actions_flags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_action_checks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_health_profiles: {
+        Row: {
+          client_id: string
+          details: Json
+          parq: Json | null
+          parq_completed_at: string | null
+          parq_positive: boolean | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          client_id: string
+          details?: Json
+          parq?: Json | null
+          parq_completed_at?: string | null
+          parq_positive?: boolean | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          details?: Json
+          parq?: Json | null
+          parq_completed_at?: string | null
+          parq_positive?: boolean | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_health_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_health_profiles_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_metric_targets: {
         Row: {
           client_id: string
@@ -262,6 +340,86 @@ export type Database = {
             columns: ["rehab_lead_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinical_flags: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          raised_by: string
+          raised_role: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sbar: Json | null
+          session_id: string | null
+          status: string
+          summary: string | null
+          tier: string
+          transcript: string | null
+          voice_path: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          raised_by: string
+          raised_role: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sbar?: Json | null
+          session_id?: string | null
+          status?: string
+          summary?: string | null
+          tier: string
+          transcript?: string | null
+          voice_path?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          raised_by?: string
+          raised_role?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sbar?: Json | null
+          session_id?: string | null
+          status?: string
+          summary?: string | null
+          tier?: string
+          transcript?: string | null
+          voice_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_flags_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinical_flags_raised_by_fkey"
+            columns: ["raised_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinical_flags_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinical_flags_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "program_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -427,6 +585,48 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          client_id: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_role: string
+        }
+        Insert: {
+          body: string
+          client_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          sender_role: string
+        }
+        Update: {
+          body?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
