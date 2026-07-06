@@ -152,10 +152,85 @@ describe.skipIf(!configured)("RLS on the live project", () => {
 
   it("anonymous visitors get nothing at all", async () => {
     const anon = anonClient();
-    for (const table of ["clients", "profiles", "weekly_reviews", "invites", "account_requests"]) {
+    for (const table of [
+      "clients",
+      "profiles",
+      "weekly_reviews",
+      "invites",
+      "account_requests",
+      "client_action_checks",
+      "messages",
+      "clinical_flags",
+      "client_health_profiles",
+    ]) {
       const { data } = await anon.from(table).select("*").limit(5);
       expect(data ?? [], `anon should read nothing from ${table}`).toEqual([]);
     }
+  });
+
+  it("Phase 3 tables: a client sees only their own rows, never another client's", async () => {
+    // Own-scoping on the new tables (0016-0019). Beatrice reads them as
+    // herself: whatever comes back must reference only her own client id.
+    const beatrice = await signedInClient("demo.patient2@engelahealth.com");
+    const { data: own } = await beatrice.from("clients").select("id");
+    const ownIds = new Set((own ?? []).map((c) => c.id));
+
+    for (const table of [
+      "client_action_checks",
+      "messages",
+      "clinical_flags",
+      "client_health_profiles",
+    ]) {
+      const { data, error } = await beatrice.from(table).select("client_id").limit(100);
+      expect(error, `select on ${table} should not error`).toBeNull();
+      for (const row of data ?? []) {
+        expect(ownIds.has(row.client_id), `${table} row leaks another client`).toBe(true);
+      }
+    }
+    await beatrice.auth.signOut();
+  });
+
+  it("Phase 3 tables: a client cannot write directly (server-only writes)", async () => {
+    const michael = await signedInClient("demo.client@engelahealth.com");
+    const { data: own } = await michael.from("clients").select("id").single();
+
+    const attempts: { table: string; row: Record<string, unknown> }[] = [
+      { table: "messages", row: { client_id: own!.id, sender_id: "x", sender_role: "client", body: "hi" } },
+      { table: "clinical_flags", row: { client_id: own!.id, raised_by: "x", raised_role: "client", tier: "minor", transcript: "t" } },
+      { table: "client_health_profiles", row: { client_id: own!.id } },
+    ];
+    for (const attempt of attempts) {
+      const { error } = await michael.from(attempt.table).insert(attempt.row);
+      expect(error, `${attempt.table} direct insert must be refused`).not.toBeNull();
+    }
+    await michael.auth.signOut();
+  });
+
+  it("a client never sees clinician-raised flags about them, only their own concerns", async () => {
+    // Load-bearing (CLAUDE.md §2): a clinician's flag is a safety flag and
+    // must not reach the client. The policy limits a client to rows where
+    // they are the raiser.
+    const michael = await signedInClient("demo.client@engelahealth.com");
+    const {
+      data: { user },
+    } = await michael.auth.getUser();
+    const { data } = await michael.from("clinical_flags").select("raised_by, raised_role");
+    for (const row of data ?? []) {
+      expect(row.raised_by, "client can only see flags they raised").toBe(user?.id);
+      expect(row.raised_role).toBe("client");
+    }
+    await michael.auth.signOut();
+  });
+
+  it("the voice-notes bucket refuses direct client access", async () => {
+    const michael = await signedInClient("demo.client@engelahealth.com");
+    const { data: listed } = await michael.storage.from("voice-notes").list();
+    expect(listed ?? [], "bucket listing should be empty for clients").toEqual([]);
+    const { error: uploadError } = await michael.storage
+      .from("voice-notes")
+      .upload("intruder/test.webm", new Blob(["x"], { type: "audio/webm" }));
+    expect(uploadError, "direct upload must be refused").not.toBeNull();
+    await michael.auth.signOut();
   });
 });
 

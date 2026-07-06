@@ -34,7 +34,7 @@ export function Sidebar({
   roster: RosterEntry[];
   viewerName: string;
   selectedId?: string;
-  activeNav: "review" | "programs" | "search" | "invites" | "audit" | "account";
+  activeNav: "review" | "programs" | "flags" | "search" | "invites" | "audit" | "account";
   /** Where a roster click lands: the review (default) or the programmes page. */
   rosterBasePath?: string;
 }) {
@@ -106,6 +106,15 @@ export function Sidebar({
             ▷
           </span>
           {!effectiveCollapsed ? <span>Programmes</span> : null}
+        </Link>
+        <Link
+          href="/console/flags"
+          className={`${styles.navLink} ${activeNav === "flags" ? styles.navLinkActive : ""}`}
+        >
+          <span className={styles.navIcon} aria-hidden="true">
+            ⚑
+          </span>
+          {!effectiveCollapsed ? <span>Flags</span> : null}
         </Link>
         <Link
           href="/console/search"

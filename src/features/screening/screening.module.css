@@ -1,0 +1,213 @@
+/* PAR-Q screening + clinical details — client app, calm and phone-first. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+}
+
+.questionText {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.answers {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.answer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-6);
+  font-size: var(--text-small);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.answer:has(input:checked) {
+  border-color: var(--c-slate);
+  background-color: var(--c-blue-tint);
+}
+
+.note {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
+}
+
+.error {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.submit {
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.later {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-slate);
+  text-decoration: none;
+}
+
+.later:hover {
+  text-decoration: underline;
+}
+
+.doneCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client-lg);
+}
+
+.doneTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--c-ink);
+}
+
+.doneLink {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-slate);
+}
+
+/* ── Home prompt banner ───────────────────────────────────────────── */
+
+.promptBanner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--c-amber-tint);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+}
+
+.promptTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.promptNote {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-action);
+}
+
+.promptLink {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-6);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+  background-color: var(--c-amber);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+}
+
+/* ── Clinical details card (account) ─────────────────────────────── */
+
+.detailsCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+}
+
+.detailsTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.parqRow {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.parqDone {
+  color: var(--c-ontrack);
+}
+
+.parqPending {
+  color: var(--c-text-action);
+}
+
+.parqLink {
+  font-weight: 700;
+  color: var(--c-slate);
+}
+
+.detailsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.detailsRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.detailsKey {
+  flex-shrink: 0;
+  width: 9rem;
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-text-secondary);
+}
+
+.detailsValue {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-ink);
+}

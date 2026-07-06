@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { type SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 
@@ -20,9 +19,7 @@ const schema = z.object({
  * has no client write policy), and the send is audited (scoped to the client, no
  * message body in the audit meta).
  *
- * Staged: the messages table ships in migration 0017; until then the insert
- * errors and the caller sees a friendly message. Untyped-client cast because the
- * table is not yet in the generated types.
+ * Backed by the messages table (migration 0017, applied live).
  */
 export async function sendMessage(
   _prev: SendMessageState,
@@ -49,8 +46,7 @@ export async function sendMessage(
     .maybeSingle();
   if (!clientRow) return { error: "No client record found.", ok: false };
 
-  const staged = admin as unknown as SupabaseClient;
-  const { data: inserted, error } = await staged
+  const { data: inserted, error } = await admin
     .from("messages")
     .insert({
       client_id: clientRow.id,
@@ -66,7 +62,7 @@ export async function sendMessage(
     actor_id: user.id,
     action: "message.sent",
     entity: "messages",
-    entity_id: (inserted as { id: string } | null)?.id ?? null,
+    entity_id: inserted?.id ?? null,
     meta: { client_id: clientRow.id },
   });
 

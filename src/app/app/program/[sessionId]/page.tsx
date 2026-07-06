@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ConcernPanel } from "@/features/flags";
 import { ClientSessionView, getOwnClient, getSessionDetail } from "@/features/programs";
 import styles from "@/features/account/account.module.css";
 
@@ -35,6 +36,8 @@ export default async function ClientSessionPage({
       </Link>
 
       <ClientSessionView detail={detail} figure={own.bodyMap} />
+
+      <ConcernPanel sessionId={sessionId} />
     </>
   );
 }

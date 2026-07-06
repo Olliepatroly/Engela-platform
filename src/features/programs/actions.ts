@@ -495,4 +495,68 @@ export async function setCategoryDone(
   };
 }
 
+const sessionNotesSchema = z.object({
+  sessionId: z.string().uuid(),
+  notes: z.string().trim().max(4000),
+});
+
+/**
+ * Session notes: what the CEP/physio observed during or after a session
+ * (screening observations, effort, anything the team should know). Trainer
+ * roles only; care-team consent via the writer's own RLS read; audited.
+ * A concern that needs the team's attention belongs in a clinical flag with
+ * SBAR (/console/flags), not buried in notes.
+ */
+export async function saveSessionNotes(
+  _prev: ProgramActionState,
+  formData: FormData,
+): Promise<ProgramActionState> {
+  const parsed = sessionNotesSchema.safeParse({
+    sessionId: formData.get("sessionId"),
+    notes: formData.get("notes") ?? "",
+  });
+  if (!parsed.success) return { error: "Check the notes and try again.", success: null };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const role = user?.app_metadata?.role;
+  if (!user || (role !== "cep" && role !== "physio" && role !== "admin")) {
+    return { error: "Only the training team can write session notes.", success: null };
+  }
+
+  const admin = getAdminClient();
+  const { data: session } = await admin
+    .from("program_sessions")
+    .select("id, client_id")
+    .eq("id", parsed.data.sessionId)
+    .maybeSingle();
+  if (!session) return { error: "This session could not be found.", success: null };
+
+  const { data: visible } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("id", session.client_id)
+    .maybeSingle();
+  if (!visible) return { error: "You do not have access to this client.", success: null };
+
+  const { error } = await admin
+    .from("program_sessions")
+    .update({ notes: parsed.data.notes || null })
+    .eq("id", parsed.data.sessionId);
+  if (error) return { error: "Could not save the notes. Try again.", success: null };
+
+  await admin.from("audit_log").insert({
+    actor_id: user.id,
+    action: "session.notes_saved",
+    entity: "program_sessions",
+    entity_id: parsed.data.sessionId,
+    meta: { client_id: session.client_id },
+  });
+
+  revalidatePath("/console/programs", "layout");
+  return { error: null, success: "Notes saved." };
+}
+
 export type { ExerciseCategory };

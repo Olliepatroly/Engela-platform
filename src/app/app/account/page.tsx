@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { NameForm, PasswordForm, getAccountInfo } from "@/features/account";
+import { ClinicalDetailsCard, getOwnHealthProfile } from "@/features/screening";
 import styles from "@/features/account/account.module.css";
 
 export const metadata: Metadata = {
@@ -14,6 +15,8 @@ export const dynamic = "force-dynamic";
 export default async function ClientAccountPage() {
   const account = await getAccountInfo();
   if (!account) redirect("/signin");
+
+  const profile = await getOwnHealthProfile();
 
   return (
     <>
@@ -31,6 +34,8 @@ export default async function ClientAccountPage() {
       <p className={styles.emailRow}>
         Signed in as <span className={styles.emailValue}>{account.email}</span>.
       </p>
+
+      <ClinicalDetailsCard profile={profile} />
 
       <NameForm fullName={account.fullName} />
       <PasswordForm />

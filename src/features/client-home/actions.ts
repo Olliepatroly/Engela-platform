@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { type SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 
@@ -21,11 +20,7 @@ const schema = z.object({
  * to them before writing. Writes go through the service role (RLS has no client
  * write policy), matching setConsent, and are audited.
  *
- * Staged: the client_action_checks table ships in migration 0016. Until it is
- * applied the write returns a friendly error and the caller reverts its optimistic
- * state; the actions simply are not tickable yet (see ClientActions). The table
- * is not yet in the generated types, hence the untyped-client cast below; switch
- * to the typed client after regenerating types.
+ * Backed by client_action_checks (migration 0016, applied live).
  */
 export async function toggleAction(actionId: string, done: boolean): Promise<ToggleActionState> {
   const parsed = schema.safeParse({ actionId, done });
@@ -68,9 +63,8 @@ export async function toggleAction(actionId: string, done: boolean): Promise<Tog
     return { error: "That action does not belong to you." };
   }
 
-  const staged = admin as unknown as SupabaseClient;
   if (parsed.data.done) {
-    const { error } = await staged
+    const { error } = await admin
       .from("client_action_checks")
       .upsert(
         { action_id: parsed.data.actionId, client_id: clientRow.id },
@@ -78,7 +72,7 @@ export async function toggleAction(actionId: string, done: boolean): Promise<Tog
       );
     if (error) return { error: "Could not save that just now. Please try again." };
   } else {
-    const { error } = await staged
+    const { error } = await admin
       .from("client_action_checks")
       .delete()
       .eq("action_id", parsed.data.actionId);

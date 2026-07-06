@@ -1,0 +1,368 @@
+/* Clinical flags — console list + SBAR form, and the client concern panel. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 56rem;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  line-height: var(--leading-h1);
+  color: var(--c-ink);
+}
+
+.subhead {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+/* ── Raise-flag (SBAR) form ───────────────────────────────────────── */
+
+.formCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.formTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.formIntro {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
+}
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-secondary);
+}
+
+.fieldHint {
+  font-size: var(--text-small);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--c-text-tertiary);
+}
+
+.input,
+.select,
+.textarea {
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-ink);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 1px;
+}
+
+.tierRow {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.tierChoice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-small);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+  cursor: pointer;
+}
+
+.tierChoice:has(input:checked) {
+  border-color: var(--c-slate);
+  background-color: var(--c-blue-tint);
+}
+
+.submit {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  font-size: var(--text-small);
+  color: var(--c-flag);
+}
+
+.success {
+  font-size: var(--text-small);
+  color: var(--c-ontrack);
+}
+
+/* ── Flags list ───────────────────────────────────────────────────── */
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.flagCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.flagCardMajor {
+  border-left: 4px solid var(--c-flag);
+}
+
+.flagCardMinor {
+  border-left: 4px solid var(--c-watch);
+}
+
+.flagTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.flagWho {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.flagMeta {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+}
+
+.flagSummary {
+  font-size: var(--text-body);
+  color: var(--c-ink);
+}
+
+.sbarGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+@media (max-width: 48rem) {
+  .sbarGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sbarBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background-color: var(--c-cream);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+.sbarLabel {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-secondary);
+}
+
+.sbarText {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-ink);
+  white-space: pre-wrap;
+}
+
+.voice {
+  width: 100%;
+}
+
+.reviewRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.reviewedNote {
+  font-size: var(--text-small);
+  color: var(--c-ontrack);
+}
+
+.reviewBtn {
+  padding: var(--space-1) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-slate);
+  background: none;
+  border: 1px solid var(--c-slate);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.reviewBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.emptyNote {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+/* ── Client concern panel (client app; calm, never red) ──────────── */
+
+.concern {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+}
+
+.concernTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.concernIntro {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
+}
+
+/* Emergency guidance: amber emphasis + bold text, colour is never the only
+   cue. This is safety-critical copy, always visible in the panel. */
+.emergency {
+  padding: var(--space-4);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  font-weight: 600;
+  color: var(--c-text-action);
+  background-color: var(--c-amber-tint);
+  border: 1px solid var(--c-amber);
+  border-radius: var(--radius-client);
+}
+
+.concernTierRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.concernTier {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-client);
+  cursor: pointer;
+}
+
+.concernTier:has(input:checked) {
+  border-color: var(--c-slate);
+  background-color: var(--c-blue-tint);
+}
+
+.recorderRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.recordBtn {
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.recordBtnStop {
+  background-color: var(--c-surface);
+  border: 2px solid var(--c-amber);
+}
+
+.recordingNote {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-text-action);
+}
+
+.typeToggle {
+  align-self: flex-start;
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-slate);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}

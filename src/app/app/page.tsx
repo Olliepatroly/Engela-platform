@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ClientHomeView, getClientHome } from "@/features/client-home";
+import { ParqPromptBanner, getOwnHealthProfile } from "@/features/screening";
 
 export const metadata: Metadata = {
   title: "This week",
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
  * disease marker or a red flag — those stay on the console.
  */
 export default async function ClientAppPage() {
-  const home = await getClientHome();
+  const [home, profile] = await Promise.all([getClientHome(), getOwnHealthProfile()]);
 
   if (!home) {
     return (
@@ -24,5 +25,10 @@ export default async function ClientAppPage() {
     );
   }
 
-  return <ClientHomeView home={home} />;
+  return (
+    <>
+      {!profile.parqCompleted ? <ParqPromptBanner /> : null}
+      <ClientHomeView home={home} />
+    </>
+  );
 }
