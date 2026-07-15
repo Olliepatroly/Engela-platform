@@ -32,24 +32,27 @@
   color: var(--c-text-tertiary);
 }
 
-/* Anatomical line art: light figure with slate outlines. Every muscle
- * compartment is drawn; highlighting fills it in. */
+/* Anatomical figure: a light silhouette with slate-tinted muscle shapes on
+ * cream. Every muscle compartment is drawn; highlighting fills it in. Strokes
+ * use non-scaling-stroke so they stay crisp at any render size. */
 .body {
   fill: var(--c-blue-tint);
-  fill-opacity: 0.3;
+  fill-opacity: 0.25;
   stroke: var(--c-slate);
-  stroke-opacity: 0.8;
-  stroke-width: 1.8;
+  stroke-opacity: 0.7;
+  stroke-width: 1.6;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .muscle path {
-  fill: var(--c-cream);
-  fill-opacity: 0.01;
+  fill: var(--c-slate);
+  fill-opacity: 0.12;
   stroke: var(--c-slate);
-  stroke-opacity: 0.55;
-  stroke-width: 1.2;
+  stroke-opacity: 0.45;
+  stroke-width: 1;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 /* Highlighted muscle groups. Primary = the amber action colour; secondary =
@@ -62,24 +65,8 @@
 
 .secondary path {
   fill: var(--c-slate);
-  fill-opacity: 0.4;
+  fill-opacity: 0.45;
   stroke-opacity: 0.7;
-}
-
-.detail path {
-  fill: none;
-  stroke: var(--c-slate);
-  stroke-opacity: 0.45;
-  stroke-width: 1.2;
-  stroke-linecap: round;
-}
-
-.hair {
-  fill: var(--c-slate);
-  fill-opacity: 0.2;
-  stroke: var(--c-slate);
-  stroke-opacity: 0.6;
-  stroke-width: 1.4;
 }
 
 .legend {
@@ -132,4 +119,274 @@
   margin: 0;
   font-size: var(--text-small);
   color: var(--c-text-tertiary);
+}
+
+/* ── Interactive rating map (BodyMapRate) ─────────────────────────────
+ * Clients tap a worked region and rate perceived effort on Borg CR10.
+ * Colour is chosen by the DIRECTION to the clinician's aimed intensity
+ * (on plan / easier / harder), never by raw effort, and never alone:
+ * every region carries its number in the figure, a <title>, and a named
+ * row in the legend. No flag-red on the client app. */
+
+.rateWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* The interactive figure stands alone (the shared .figure is sized for the
+ * two-up display map), so give it room to read on a phone. */
+.rateWrap .figure {
+  flex: none;
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+.viewToggle {
+  display: inline-flex;
+  align-self: center;
+  gap: var(--space-1);
+  padding: 0.1875rem;
+  background: var(--c-blue-tint);
+  border-radius: var(--radius-pill);
+}
+
+.viewToggleBtn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.25rem 0.875rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-text-secondary);
+}
+
+.viewToggleBtn:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+}
+
+.viewToggleActive {
+  background: var(--c-cream);
+  color: var(--c-ink);
+  box-shadow: 0 1px 2px rgb(0 26 56 / 0.12);
+}
+
+/* Interactive muscle groups. A region "in play" this session is dashed and
+ * tappable; the rest are quiet and inert. */
+.region {
+  cursor: pointer;
+}
+
+.region:focus {
+  outline: none;
+}
+
+.region path {
+  fill: var(--c-slate);
+  fill-opacity: 0.12;
+  stroke: var(--c-slate);
+  stroke-opacity: 0.4;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition:
+    fill-opacity 0.15s ease,
+    fill 0.15s ease;
+}
+
+.inert {
+  cursor: default;
+}
+
+.inPlay path {
+  stroke-opacity: 0.85;
+  stroke-dasharray: 3 3;
+}
+
+/* Rated fills, by direction to aimed intensity. */
+.onTarget path {
+  fill: var(--c-slate);
+  fill-opacity: 0.7;
+  stroke-dasharray: none;
+  stroke-opacity: 0.8;
+}
+
+.eased path {
+  fill: var(--c-slate);
+  fill-opacity: 0.3;
+  stroke-dasharray: none;
+  stroke-opacity: 0.7;
+}
+
+.harder path {
+  fill: var(--c-watch);
+  fill-opacity: 0.8;
+  stroke-dasharray: none;
+  stroke-opacity: 0.85;
+}
+
+.recorded path {
+  fill: var(--c-slate);
+  fill-opacity: 0.55;
+  stroke-dasharray: none;
+  stroke-opacity: 0.8;
+}
+
+/* Selected region: a clear focus ring drawn on the group. */
+.selected path {
+  stroke: var(--c-amber);
+  stroke-opacity: 1;
+  stroke-width: 2.6;
+  stroke-dasharray: none;
+}
+
+.region:focus-visible path {
+  stroke: var(--c-focus);
+  stroke-opacity: 1;
+  stroke-width: 2.6;
+}
+
+/* The value number drawn at the region centroid. */
+.valueLabel {
+  fill: var(--c-navy);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.valueLabelOnDark {
+  fill: var(--c-cream);
+}
+
+/* ── CR10 rating control ─────────────────────────────────────────────── */
+.rateControl {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--c-cream);
+  border: 1px solid var(--c-hairline, rgb(46 80 119 / 0.16));
+  border-radius: var(--radius-lg, 0.75rem);
+}
+
+.rateControlHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.rateRegionName {
+  font-family: var(--font-display, var(--font-body));
+  font-size: var(--text-body, 1rem);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.rateAimed {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.ratePrompt {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.scale {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 0.25rem;
+}
+
+.scaleBtn {
+  appearance: none;
+  border: 1px solid var(--c-hairline, rgb(46 80 119 / 0.2));
+  background: var(--c-cream);
+  color: var(--c-text-secondary);
+  cursor: pointer;
+  padding: 0.5rem 0;
+  border-radius: 0.375rem;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 600;
+  min-height: 2.25rem;
+}
+
+.scaleBtn:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 1px;
+}
+
+.scaleBtnActive {
+  background: var(--c-amber);
+  border-color: var(--c-amber);
+  color: var(--c-navy);
+}
+
+.scaleDescriptor {
+  margin: 0;
+  min-height: 1.25rem;
+  font-size: var(--text-small);
+  color: var(--c-ink);
+  font-weight: 600;
+}
+
+/* ── Effort legend (always names region + value + status in words) ────── */
+.rateLegend {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.rateLegendRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+}
+
+.rateLegendDot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.dotOnTarget {
+  background: var(--c-slate);
+}
+
+.dotEased {
+  background: var(--c-slate);
+  opacity: 0.4;
+}
+
+.dotHarder {
+  background: var(--c-watch);
+}
+
+.dotRecorded {
+  background: var(--c-slate);
+  opacity: 0.7;
+}
+
+.rateLegendName {
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.rateLegendMeta {
+  color: var(--c-text-secondary);
 }

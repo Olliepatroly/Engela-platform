@@ -298,6 +298,7 @@ const sessionExerciseSchema = z.object({
   weightKg: z.coerce.number().positive().max(500).optional(),
   durationMin: z.coerce.number().positive().max(600).optional(),
   distanceKm: z.coerce.number().positive().max(200).optional(),
+  aimedIntensity: z.coerce.number().int().min(0).max(10).optional(),
   notes: z.string().trim().max(300).optional(),
 });
 
@@ -314,6 +315,7 @@ export async function addSessionExercise(
     weightKg: formData.get("weightKg") || undefined,
     durationMin: formData.get("durationMin") || undefined,
     distanceKm: formData.get("distanceKm") || undefined,
+    aimedIntensity: formData.get("aimedIntensity") || undefined,
     notes: formData.get("notes") || undefined,
   });
   if (!parsed.success) {
@@ -349,6 +351,7 @@ export async function addSessionExercise(
       weight_kg: parsed.data.weightKg ?? null,
       duration_min: parsed.data.durationMin ?? null,
       distance_km: parsed.data.distanceKm ?? null,
+      aimed_intensity: parsed.data.aimedIntensity ?? null,
       notes: parsed.data.notes || null,
     })
     .select("id")
@@ -557,6 +560,93 @@ export async function saveSessionNotes(
 
   revalidatePath("/console/programs", "layout");
   return { error: null, success: "Notes saved." };
+}
+
+const MUSCLE_SET = new Set<string>(MUSCLES as readonly string[]);
+
+const effortSchema = z.object({
+  sessionId: z.string().uuid(),
+  muscle: z.string().refine((m) => MUSCLE_SET.has(m), "Unknown muscle group."),
+  value: z.coerce.number().int().min(0).max(10),
+});
+
+/**
+ * Record a client's perceived effort (Borg CR10, 0 to 10) for one muscle
+ * region of a session. The client rates it on the body map; the value is
+ * written to every exercise in the session that works that region primarily.
+ * A CEP or physio on the care team can record it for them when they train
+ * together (audited). This is the client's own rating, so no flag styling and
+ * no clinical judgement is written here, only the number.
+ */
+export async function recordPerceivedEffort(input: {
+  sessionId: string;
+  muscle: string;
+  value: number;
+}): Promise<ProgramActionState> {
+  const parsed = effortSchema.safeParse(input);
+  if (!parsed.success) return { error: "Pick an effort from 0 to 10.", success: null };
+  const { sessionId, muscle, value } = parsed.data;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const role = user?.app_metadata?.role;
+  const isClient = role === "client";
+  const isTrainer = role === "cep" || role === "physio" || role === "admin";
+  if (!user || (!isClient && !isTrainer)) {
+    return { error: "You cannot record effort for this session.", success: null };
+  }
+
+  const admin = getAdminClient();
+  const { data: session } = await admin
+    .from("program_sessions")
+    .select("id, client_id, clients(profile_id)")
+    .eq("id", sessionId)
+    .maybeSingle();
+  if (!session) return { error: "This session could not be found.", success: null };
+
+  if (isClient && session.clients?.profile_id !== user.id) {
+    return { error: "This session is not part of your programme.", success: null };
+  }
+  if (isTrainer) {
+    const { data: visible } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("id", session.client_id)
+      .maybeSingle();
+    if (!visible) return { error: "You do not have access to this client.", success: null };
+  }
+
+  // Which exercises in this session work the rated region primarily?
+  const { data: entries } = await admin
+    .from("session_exercises")
+    .select("id, exercises(primary_muscles)")
+    .eq("session_id", sessionId);
+  const targetIds = (entries ?? [])
+    .filter((e) => (e.exercises?.primary_muscles ?? []).includes(muscle as MuscleGroup))
+    .map((e) => e.id);
+  if (targetIds.length === 0) {
+    return { error: "That muscle is not worked in this session.", success: null };
+  }
+
+  const { error } = await admin
+    .from("session_exercises")
+    .update({ perceived_effort: value, effort_recorded_at: new Date().toISOString() })
+    .in("id", targetIds);
+  if (error) return { error: "Could not save that. Try again.", success: null };
+
+  await admin.from("audit_log").insert({
+    actor_id: user.id,
+    action: "session.effort_recorded",
+    entity: "program_sessions",
+    entity_id: sessionId,
+    meta: { client_id: session.client_id, muscle, value, by_role: role },
+  });
+
+  revalidatePath("/app/program", "layout");
+  revalidatePath("/console/programs", "layout");
+  return { error: null, success: isClient ? "Thanks, that is saved." : "Effort recorded." };
 }
 
 export type { ExerciseCategory };

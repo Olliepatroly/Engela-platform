@@ -677,8 +677,16 @@
 }
 
 .exerciseMuscles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   font-size: var(--text-label);
   color: var(--c-text-tertiary);
+}
+
+.exerciseEffort {
+  font-weight: 600;
+  color: var(--c-text-secondary);
 }
 
 .doneMark {

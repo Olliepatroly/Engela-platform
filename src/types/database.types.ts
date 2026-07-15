@@ -885,12 +885,15 @@ export type Database = {
       }
       session_exercises: {
         Row: {
+          aimed_intensity: number | null
           completed_at: string | null
           distance_km: number | null
           duration_min: number | null
+          effort_recorded_at: string | null
           exercise_id: string
           id: string
           notes: string | null
+          perceived_effort: number | null
           position: number
           reps: number | null
           session_id: string
@@ -898,12 +901,15 @@ export type Database = {
           weight_kg: number | null
         }
         Insert: {
+          aimed_intensity?: number | null
           completed_at?: string | null
           distance_km?: number | null
           duration_min?: number | null
+          effort_recorded_at?: string | null
           exercise_id: string
           id?: string
           notes?: string | null
+          perceived_effort?: number | null
           position?: number
           reps?: number | null
           session_id: string
@@ -911,12 +917,15 @@ export type Database = {
           weight_kg?: number | null
         }
         Update: {
+          aimed_intensity?: number | null
           completed_at?: string | null
           distance_km?: number | null
           duration_min?: number | null
+          effort_recorded_at?: string | null
           exercise_id?: string
           id?: string
           notes?: string | null
+          perceived_effort?: number | null
           position?: number
           reps?: number | null
           session_id?: string

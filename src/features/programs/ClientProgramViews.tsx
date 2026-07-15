@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { BodyMap } from "@/components/ui";
 import { CategoryToggle } from "./CategoryToggle";
+import { SessionEffortMap } from "./SessionEffortMap";
 import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
@@ -191,10 +191,22 @@ export function ClientSessionView({
         );
       })}
 
-      <section className={styles.bodyMapCard} aria-label="Muscles this session works">
-        <h3 className={styles.categoryTitle}>What this session works</h3>
-        <BodyMap figure={figure} primary={detail.primaryMuscles} secondary={detail.secondaryMuscles} />
-      </section>
+      {detail.effortRegions.length > 0 ? (
+        <section className={styles.bodyMapCard} aria-label="How hard it felt">
+          <h3 className={styles.categoryTitle}>How hard did it feel?</h3>
+          <p className={styles.bodyMapNote}>
+            Tap each muscle you worked and rate how hard it felt, from 0 (rest) to 10 (as hard as
+            you could go). There are no wrong answers: it helps your team pace you well.
+          </p>
+          <SessionEffortMap
+            sessionId={detail.id}
+            regions={detail.effortRegions}
+            aimed={detail.aimedByMuscle}
+            effort={detail.effortByMuscle}
+            figure={figure}
+          />
+        </section>
+      ) : null}
 
       <p className={styles.disclaimer}>
         Go at your own pace. If anything feels wrong, stop and let your community know: easing off
