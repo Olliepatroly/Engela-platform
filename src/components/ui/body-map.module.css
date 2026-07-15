@@ -176,8 +176,9 @@
   box-shadow: 0 1px 2px rgb(0 26 56 / 0.12);
 }
 
-/* Interactive muscle groups. A region "in play" this session is dashed and
- * tappable; the rest are quiet and inert. */
+/* Interactive muscle groups. A region worked this session is filled light
+ * amber (clearly "you used this, tap to rate") against the quiet grey of the
+ * rest of the body; once rated it takes on its direction-to-aimed colour. */
 .region {
   cursor: pointer;
 }
@@ -186,25 +187,34 @@
   outline: none;
 }
 
+/* Inert: the rest of the body, quiet grey for contrast. */
 .region path {
   fill: var(--c-slate);
-  fill-opacity: 0.12;
+  fill-opacity: 0.1;
   stroke: var(--c-slate);
-  stroke-opacity: 0.4;
+  stroke-opacity: 0.35;
   stroke-width: 1;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
   transition:
+    fill 0.15s ease,
     fill-opacity 0.15s ease,
-    fill 0.15s ease;
+    stroke 0.15s ease,
+    stroke-opacity 0.15s ease;
 }
 
 .inert {
   cursor: default;
 }
 
+/* Worked this session, not yet rated: light orange so the used muscle groups
+ * stand out against the grey body. Dashed edge says "tap to rate". */
 .inPlay path {
-  stroke-opacity: 0.85;
+  fill: var(--c-amber);
+  fill-opacity: 0.4;
+  stroke: var(--c-amber);
+  stroke-opacity: 0.95;
+  stroke-width: 1.4;
   stroke-dasharray: 3 3;
 }
 
