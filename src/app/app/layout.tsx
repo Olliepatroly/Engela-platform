@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { EngelaMark } from "@/components/ui";
+import { DemoBadge, EngelaMark } from "@/components/ui";
 import { signOut } from "@/features/auth";
 import { ClientTabBar } from "./ClientTabBar";
 import styles from "./client-shell.module.css";
@@ -18,6 +18,7 @@ export default function ClientAppLayout({ children }: { children: ReactNode }) {
           <EngelaMark className={styles.mark} size={1.1} />
           <span className={styles.wordmarkSerif}>Engela</span>
           <span className={styles.wordmarkSans}>HEALTH</span>
+          <DemoBadge />
         </p>
         <form action={signOut}>
           <button className={styles.signOut} type="submit">

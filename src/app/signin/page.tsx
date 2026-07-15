@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { EngelaMark } from "@/components/ui";
+import { DemoBadge, EngelaMark } from "@/components/ui";
 import { SignInForm } from "@/features/auth";
 import styles from "./signin.module.css";
 
@@ -21,6 +21,7 @@ export default function SignInPage() {
           <EngelaMark className={styles.markIcon} size={1.2} />
           <span className={styles.wordmarkSerif}>Engela</span>
           <span className={styles.wordmarkSans}>HEALTH</span>
+          <DemoBadge />
         </p>
         <h1 className={styles.heading}>Sign in</h1>
         <p className={styles.subhead}>
