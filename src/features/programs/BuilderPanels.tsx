@@ -216,6 +216,18 @@ export function AddSessionExerciseForm({
           <span className={styles.fieldLabel}>Distance (km)</span>
           <input className={styles.input} type="number" step="0.1" name="distanceKm" min="0" />
         </label>
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>Aimed effort (0 to 10)</span>
+          <input
+            className={styles.input}
+            type="number"
+            name="aimedIntensity"
+            min="0"
+            max="10"
+            step="1"
+            placeholder="CR10"
+          />
+        </label>
       </div>
       <label className={styles.field}>
         <span className={styles.fieldLabel}>Notes (optional)</span>

@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { BodyMap, MUSCLE_LABELS, StatusPill } from "@/components/ui";
+import { MUSCLE_LABELS, StatusPill } from "@/components/ui";
 import { AddSessionExerciseForm } from "./BuilderPanels";
 import { CategoryToggle } from "./CategoryToggle";
+import { SessionEffortMap } from "./SessionEffortMap";
 import { SessionNotesPanel } from "./SessionNotesPanel";
 import {
   CATEGORY_LABELS,
@@ -115,6 +116,13 @@ function SessionBreakdown({
                         </div>
                         <span className={styles.exerciseMuscles}>
                           {e.primaryMuscles.map((m) => MUSCLE_LABELS[m]).join(", ")}
+                          {e.aimedIntensity != null || e.perceivedEffort != null ? (
+                            <span className={styles.exerciseEffort}>
+                              {e.aimedIntensity != null ? `aim ${e.aimedIntensity}/10` : ""}
+                              {e.aimedIntensity != null && e.perceivedEffort != null ? " · " : ""}
+                              {e.perceivedEffort != null ? `felt ${e.perceivedEffort}/10` : ""}
+                            </span>
+                          ) : null}
                         </span>
                         <span className={e.completed ? styles.doneMark : styles.pendingMark}>
                           {e.completed ? "✓ Done" : "Planned"}
@@ -142,13 +150,22 @@ function SessionBreakdown({
               </p>
             ) : null}
           </div>
-          <aside className={styles.bodyMapPanel} aria-label="Muscles worked">
-            <h3 className={styles.categoryTitle}>Muscles worked</h3>
-            <BodyMap
-              figure={figure}
-              primary={detail.primaryMuscles}
-              secondary={detail.secondaryMuscles}
-            />
+          <aside className={styles.bodyMapPanel} aria-label="Reported effort">
+            <h3 className={styles.categoryTitle}>Effort vs aim</h3>
+            {detail.effortRegions.length > 0 ? (
+              <SessionEffortMap
+                sessionId={detail.id}
+                regions={detail.effortRegions}
+                aimed={detail.aimedByMuscle}
+                effort={detail.effortByMuscle}
+                figure={figure}
+                readOnly
+              />
+            ) : (
+              <p className={styles.emptyNote}>
+                No muscle groups set on this session&rsquo;s exercises yet.
+              </p>
+            )}
           </aside>
         </div>
       </section>

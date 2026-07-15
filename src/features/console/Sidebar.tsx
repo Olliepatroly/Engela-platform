@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { EngelaMark, StatusPill } from "@/components/ui";
+import { DemoBadge, EngelaMark, StatusPill } from "@/components/ui";
 import { signOut } from "@/features/auth";
 import type { RosterEntry } from "./data";
 import styles from "./sidebar.module.css";
@@ -71,6 +71,7 @@ export function Sidebar({
             <EngelaMark className={styles.markIcon} size={1.05} />
             <span className={styles.wordmarkSerif}>Engela</span>
             <span className={styles.wordmarkSans}>HEALTH</span>
+            <DemoBadge />
           </p>
         ) : (
           <p className={styles.wordmarkMini}>

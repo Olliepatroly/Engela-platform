@@ -324,6 +324,24 @@
   color: var(--c-text-secondary);
 }
 
+.bodyMapNote {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--c-text-secondary);
+}
+
+.effortSaved {
+  margin-top: var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.effortError {
+  margin-top: var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-watch);
+}
+
 .disclaimer {
   font-size: var(--text-small);
   line-height: var(--leading-small);

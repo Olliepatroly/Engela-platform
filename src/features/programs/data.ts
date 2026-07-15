@@ -50,7 +50,14 @@ export type SessionExerciseVM = {
   completed: boolean;
   primaryMuscles: MuscleGroup[];
   secondaryMuscles: MuscleGroup[];
+  /** Clinician's aimed intensity (Borg CR10) for this exercise. */
+  aimedIntensity: number | null;
+  /** Client's recorded perceived effort (Borg CR10). */
+  perceivedEffort: number | null;
 };
+
+/** Per muscle-group effort projection for the interactive body map. */
+export type EffortByMuscle = Partial<Record<MuscleGroup, number>>;
 
 export type SessionDetailVM = {
   id: string;
@@ -65,6 +72,12 @@ export type SessionDetailVM = {
   /** Union across the session for the body map: primary wins over secondary. */
   primaryMuscles: MuscleGroup[];
   secondaryMuscles: MuscleGroup[];
+  /** Rateable regions (primary muscles worked this session). */
+  effortRegions: MuscleGroup[];
+  /** Aimed intensity per region (max across the region's exercises). */
+  aimedByMuscle: EffortByMuscle;
+  /** Recorded perceived effort per region. */
+  effortByMuscle: EffortByMuscle;
 };
 
 /** Exercise library for pickers and the library panel, grouped by category. */
@@ -154,7 +167,7 @@ export async function getSessionDetail(sessionId: string): Promise<SessionDetail
       `id, client_id, title, scheduled_for, status, completed_at, notes,
        programs(title),
        session_exercises(id, position, sets, reps, weight_kg, duration_min,
-         distance_km, notes, completed_at,
+         distance_km, notes, completed_at, aimed_intensity, perceived_effort,
          exercises(name, category, equipment, instructions, primary_muscles, secondary_muscles))`,
     )
     .eq("id", sessionId)
@@ -179,12 +192,27 @@ export async function getSessionDetail(sessionId: string): Promise<SessionDetail
       completed: se.completed_at != null,
       primaryMuscles: se.exercises?.primary_muscles ?? [],
       secondaryMuscles: se.exercises?.secondary_muscles ?? [],
+      aimedIntensity: se.aimed_intensity,
+      perceivedEffort: se.perceived_effort,
     }));
 
   const primary = new Set<MuscleGroup>();
   const secondary = new Set<MuscleGroup>();
+  // Per-region aggregates for the interactive map: aimed is the hardest target
+  // among the region's exercises; effort is the recorded rating (propagated to
+  // all a region's exercises by recordPerceivedEffort, so any non-null wins).
+  const aimedByMuscle: EffortByMuscle = {};
+  const effortByMuscle: EffortByMuscle = {};
   for (const e of exercises) {
-    for (const m of e.primaryMuscles) primary.add(m);
+    for (const m of e.primaryMuscles) {
+      primary.add(m);
+      if (e.aimedIntensity != null) {
+        aimedByMuscle[m] = Math.max(aimedByMuscle[m] ?? 0, e.aimedIntensity);
+      }
+      if (e.perceivedEffort != null) {
+        effortByMuscle[m] = Math.max(effortByMuscle[m] ?? 0, e.perceivedEffort);
+      }
+    }
     for (const m of e.secondaryMuscles) secondary.add(m);
   }
   for (const m of primary) secondary.delete(m);
@@ -201,6 +229,9 @@ export async function getSessionDetail(sessionId: string): Promise<SessionDetail
     exercises,
     primaryMuscles: Array.from(primary),
     secondaryMuscles: Array.from(secondary),
+    effortRegions: Array.from(primary),
+    aimedByMuscle,
+    effortByMuscle,
   };
 }
 

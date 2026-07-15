@@ -26,8 +26,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Engela Health — Clinical Platform",
-    template: "%s | Engela Health",
+    default: "Engela Health (Demo) — Clinical Platform",
+    template: "%s | Engela Health (Demo)",
   },
   description: "Secure clinical platform for the Engela Health Cancer Rehabilitation Programme.",
   // The whole app surface is private and must never be indexed.

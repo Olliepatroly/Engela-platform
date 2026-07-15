@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DemoBadge } from "@/components/ui";
 import styles from "./page.module.css";
 
 /**
@@ -15,6 +16,7 @@ export default function HomePage() {
         <p className={styles.wordmark}>
           <span className={styles.wordmarkSerif}>Engela</span>
           <span className={styles.wordmarkSans}>HEALTH</span>
+          <DemoBadge />
         </p>
         <h1 className={styles.heading}>Clinical platform</h1>
         <p className={styles.subhead}>
