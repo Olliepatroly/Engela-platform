@@ -2,6 +2,71 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-07-19 — Outcome radar (spider graph) on the weekly review and console home
+
+**What:**
+- **Reusable radar/spider chart** (`components/ui/RadarChart.tsx`), pure SVG per the house
+  no-charting-library style. Draws faint concentric rings, one spoke per axis, optional alternating
+  group bands, and a filled polygon per series, with a centre readout and a named legend. Colour is
+  never the only signal, every zone and series is named and each axis chip exposes its value via
+  `aria-label`.
+- **Zones, not a fixed target line.** Behind the series the chart shades two bands on the shared
+  score scale: a target band clients aim into (score at or above 8) and a low "needs attention"
+  band (at or below 4), each with a dashed boundary drawn over the fills so both stay legible under
+  the current polygon. On the normalised 0 to 10 metric sub-score these bands express every
+  metric's own target area, so one global band is correct per axis.
+- **Clickable label chips.** Each axis label renders as a rounded chip that looks tappable and is
+  the keyboard-focusable control (role=button, Enter/Space, focus ring); the current-series points
+  stay mouse-clickable. Selecting either opens that metric's history, the same `MetricDetailModal`
+  drill-down the metric table uses.
+- **Weekly review centrepiece** (`ScoreRadar` on `/console/review`) and a **featured-client preview
+  on the console home** (`/console`): the home now loads one client's radar (a flagged client if
+  any, else the first on the roster) with a link through to their weekly review, for trialling.
+- **Sparse clients.** A radar needs at least three scored metrics; below that the panel shows a
+  short "not enough readings yet" note rather than an empty gap or a degenerate two-axis shape.
+- **Data.** `MetricRowVM` carries `currentScore` and `baselineScore`, computed in `getLatestReview`
+  from the scoring engine (`metricScore`): current from the latest reading, baseline from the
+  earliest reading held.
+- **Hydration.** Radar coordinates are rounded to 2dp because `Math.sin/cos` differ by ~1 ULP
+  across JS engines, which otherwise hydrates mismatched between server and browser.
+
+**Why:** Oliver's request: a main spider graph for the weekly score resembling the FIM+FAM outcome
+chart, click-through to each data point's history, a target zone to aim into with a red
+needs-attention zone below (rather than a fixed target line), bigger with thicker clickable-looking
+labels, and shown on both the weekly review and the home so it can be trialled before pushing.
+Note: the red zone lives on the clinical console only; the client app must never show a red/flag
+warning (safety rule 2/5), so a client-facing variant would soften it to amber "focus" tones.
+
+**Files:** `src/components/ui/RadarChart.tsx` + `radar.module.css` (new), `src/components/ui/index.ts`,
+`src/features/console/ScoreRadar.tsx` (new), `src/features/console/ConsoleView.tsx`,
+`src/features/console/HomeView.tsx`, `src/features/console/console.module.css`,
+`src/features/console/home.module.css`, `src/features/console/data.ts` (per-metric scores),
+`src/app/console/page.tsx` (featured review). No new tables, migrations or secrets.
+(`src/app/dev/radar/page.tsx` is a local-only preview, not committed, matching `/dev/bodymap`.)
+
+## 2026-07-19 — Clinical home overview (`/console`)
+
+**What:**
+- **New clinical home at `/console`.** Every clinical account now lands on an overview rather than
+  straight into a patient's weekly review. It leads with the unchecked flags queue (safety first),
+  then overview tiles (active clients, unchecked flags, flagged reviews, clinical-team size) and a
+  team roster grouped by discipline. The flags shown are a preview that links through to
+  `/console/flags` for the review action; the flags tile turns red only when something is waiting.
+- **Weekly review moved to `/console/review`.** The former `/console` review screen is unchanged in
+  behaviour, just relocated. The sidebar gains a "Home" item, "Weekly review" points at the new
+  route, and roster clicks now default to `/console/review`.
+- **Data.** `getHomeOverview(roster)` returns care-team-scoped client counts and the clinical team
+  by role. Client counts come through RLS (`clients_select_own_or_care_team`); the team roster reads
+  safe fields only via `profiles_select_self_or_clinical`. No new tables, migrations or secrets.
+
+**Why:** Per the flow map, clinical sign-in should reach a home overview that surfaces flags first
+and shows the team and client load at a glance, with the weekly review one click away.
+
+**Files:** `src/app/console/page.tsx` (now the home), `src/app/console/review/page.tsx` (new,
+relocated review), `src/features/console/HomeView.tsx` + `home.module.css` (new),
+`src/features/console/data.ts` (`getHomeOverview`), `src/features/console/index.ts`,
+`src/features/console/Sidebar.tsx` (Home nav item, review route, roster base path).
+
 ## 2026-07-06 — Account-request approval routing (approver email + one-step approve)
 
 **What:**

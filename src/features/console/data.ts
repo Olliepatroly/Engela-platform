@@ -3,6 +3,8 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { PillStatus, TargetDef } from "@/components/ui";
 import type { Database } from "@/types/database.types";
+import { CLINICAL_ROLES, type Role } from "@/lib/roles";
+import { metricScore, type Target } from "./scoring";
 
 type Pillar = Database["public"]["Enums"]["pillar"];
 type MetricStatus = Database["public"]["Enums"]["metric_status"];
@@ -50,6 +52,10 @@ export type MetricRowVM = {
   history: number[];
   target: TargetDef;
   whyItMatters: string | null;
+  /** 0 to 10 sub-score of the latest reading (radar "current" ring). */
+  currentScore: number | null;
+  /** 0 to 10 sub-score of the earliest reading held (radar "baseline" ring). */
+  baselineScore: number | null;
 };
 
 export type PillarSectionVM = {
@@ -313,6 +319,15 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
           const effective =
             overrideMap.get(m.metric_code) ??
             ((m.metrics_catalog?.target_def ?? null) as TargetDef);
+          const history = Array.isArray(m.history) ? (m.history as number[]) : [];
+          // Radar sub-scores share the metric's 0-to-10 scoring so unlike units
+          // (kg, bpm, hrs) sit on one axis. Baseline reuses the earliest reading
+          // held; current is the latest. Target always scores 10 (the outer ring).
+          const target = effective as Target;
+          const currentScore = m.current != null ? metricScore(target, history, m.current) : null;
+          const baselineValue = history.length > 0 ? history[0] : m.current;
+          const baselineScore =
+            baselineValue != null ? metricScore(target, [baselineValue], baselineValue) : null;
           return {
             code: m.metric_code,
             name: m.metrics_catalog?.name ?? m.metric_code,
@@ -325,9 +340,11 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
             previous: formatValue(m.metric_code, m.previous),
             deltaText: formatDelta(m.metric_code, m.delta),
             status: (m.status as PillStatus | null) ?? null,
-            history: Array.isArray(m.history) ? (m.history as number[]) : [],
+            history,
             target: effective,
             whyItMatters: m.metrics_catalog?.why_it_matters ?? null,
+            currentScore,
+            baselineScore,
           };
         });
       return {
@@ -372,5 +389,80 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
     issuedAt: data.issued_at,
     signedByName: data.signed_by_profile?.full_name ?? null,
     signedAt: data.signed_at,
+  };
+}
+
+/* ── Clinical home overview ───────────────────────────────────────────── */
+
+/** Display labels for the clinical roles shown in the team overview. */
+const ROLE_LABELS: Record<Role, string> = {
+  consultant: "Consultants",
+  nurse: "Specialist nurses",
+  cep: "Exercise physiologists",
+  physio: "Physiotherapists",
+  admin: "Admins",
+  client: "Clients",
+};
+
+export type TeamMemberVM = {
+  id: string;
+  fullName: string;
+  role: Role;
+};
+
+export type TeamGroupVM = {
+  role: Role;
+  label: string;
+  members: TeamMemberVM[];
+};
+
+export type HomeOverviewVM = {
+  /** Clients on the viewer's care team with an active programme (RLS scoped). */
+  activeClients: number;
+  /** All clients on the viewer's care team, whatever their programme status. */
+  totalClients: number;
+  /** Clients whose latest review is flagged, for a quick "needs a look" count. */
+  flaggedClients: number;
+  /** Clinical colleagues grouped by discipline (empty groups dropped). */
+  team: TeamGroupVM[];
+};
+
+/**
+ * Everything the clinical home needs above the flags queue: how many clients
+ * the viewer carries, and the wider clinical team by discipline. Client counts
+ * are RLS scoped to the viewer's care team; the team roster is readable to any
+ * clinical account (profiles_select_self_or_clinical), safe fields only.
+ */
+export async function getHomeOverview(roster: RosterEntry[]): Promise<HomeOverviewVM> {
+  const supabase = await createClient();
+
+  const [{ data: clients }, { data: members }] = await Promise.all([
+    supabase.from("clients").select("status"),
+    supabase
+      .from("profiles")
+      .select("id, full_name, role")
+      .in("role", [...CLINICAL_ROLES])
+      .order("full_name"),
+  ]);
+
+  const clientRows = clients ?? [];
+  const activeClients = clientRows.filter((c) => c.status === "active").length;
+
+  const flaggedClients = roster.filter((r) => r.reviewStatus === "flag").length;
+
+  // Group colleagues by role, preserving the clinical-team order.
+  const team: TeamGroupVM[] = CLINICAL_ROLES.map((role) => ({
+    role,
+    label: ROLE_LABELS[role],
+    members: (members ?? [])
+      .filter((m) => m.role === role)
+      .map((m) => ({ id: m.id, fullName: m.full_name, role: m.role as Role })),
+  })).filter((group) => group.members.length > 0);
+
+  return {
+    activeClients,
+    totalClients: clientRows.length,
+    flaggedClients,
+    team,
   };
 }

@@ -1,50 +1,56 @@
 import type { Metadata } from "next";
-import { ConsoleView, getLatestReview, getMetricOptions, getRoster } from "@/features/console";
+import { HomeView, getHomeOverview, getLatestReview, getRoster } from "@/features/console";
+import { getFlags } from "@/features/flags";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Clinical Console",
+  title: "Clinical home",
 };
 
 // Supabase reads are per-request (cookie-scoped RLS) — never prerender.
 export const dynamic = "force-dynamic";
 
 /**
- * Consultant console (clinical team only; middleware gates the route, RLS
- * scopes the data to the signed-in clinician's care team). Renders the roster
- * and the selected patient's latest weekly review.
+ * Clinical home — where every clinical account lands after sign-in (see
+ * homePathForRole). Leads with the unchecked flags queue (safety first), then
+ * the team's shape: clients carried and clinical colleagues by discipline.
+ * Middleware gates the route to clinical roles; RLS scopes every figure to the
+ * viewer's consented care team.
  */
-export default async function ConsolePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ patient?: string }>;
-}) {
-  const { patient } = await searchParams;
-
+export default async function ConsoleHomePage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   const viewerName =
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "Clinical team";
-  // Sign-off is the consultant's act; admin can stand in.
-  const viewerRole = user?.app_metadata?.role;
-  const viewerCanSignOff = viewerRole === "consultant" || viewerRole === "admin";
 
-  const roster = await getRoster();
-  const selectedId = patient ?? roster[0]?.clientId;
-  const [review, metricOptions] = await Promise.all([
-    selectedId ? getLatestReview(selectedId) : Promise.resolve(null),
-    getMetricOptions(),
-  ]);
+  const [roster, flags] = await Promise.all([getRoster(), getFlags()]);
+  const overview = await getHomeOverview(roster);
+  const openFlags = flags.filter((flag) => flag.status === "open");
+
+  // Preview one client's outcome radar on the home for trialling: prefer a
+  // flagged client, else the first on the roster.
+  const featuredEntry = roster.find((r) => r.reviewStatus === "flag") ?? roster[0];
+  const featuredReview = featuredEntry ? await getLatestReview(featuredEntry.clientId) : null;
+  const featured = featuredReview
+    ? {
+        clientId: featuredReview.patient.clientId,
+        name: featuredReview.patient.fullName,
+        mrn: featuredReview.patient.mrn,
+        week: featuredReview.weekNo,
+        composite: featuredReview.compositeScore,
+        pillars: featuredReview.pillars,
+      }
+    : null;
 
   return (
-    <ConsoleView
+    <HomeView
       roster={roster}
-      review={review}
+      overview={overview}
+      openFlags={openFlags}
       viewerName={viewerName}
-      viewerCanSignOff={viewerCanSignOff}
-      metricOptions={metricOptions}
+      featured={featured}
     />
   );
 }

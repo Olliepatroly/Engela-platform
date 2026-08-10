@@ -416,6 +416,52 @@
   color: var(--c-text-secondary);
 }
 
+/* Outcome radar */
+.radarPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.radarHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.radarTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--c-ink);
+}
+
+.radarNote {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.radarEmpty {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+
+.radarFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.radarFooterLink {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-slate);
+}
+
 @media (max-width: 56rem) {
   .shell {
     flex-direction: column;

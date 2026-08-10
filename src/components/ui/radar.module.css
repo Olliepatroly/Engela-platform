@@ -1,0 +1,183 @@
+/* Spider / radar chart. Structural + interactive styles; series colours are
+   set inline from design tokens in RadarChart.tsx. */
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0;
+  width: 100%;
+}
+
+.svg {
+  width: 100%;
+  max-width: 40rem;
+  height: auto;
+  overflow: visible;
+}
+
+/* Zones */
+.targetZone {
+  fill: var(--c-slate);
+  opacity: 0.1;
+}
+
+.redZone {
+  fill: var(--c-flag);
+  opacity: 0.1;
+}
+
+.targetBoundary {
+  fill: none;
+  stroke: var(--c-slate);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+  opacity: 0.55;
+}
+
+.redBoundary {
+  fill: none;
+  stroke: var(--c-flag);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+  opacity: 0.6;
+}
+
+/* Grid */
+.band {
+  fill: var(--c-slate);
+  opacity: 0.04;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--c-line);
+  stroke-width: 1;
+}
+
+.spoke {
+  stroke: var(--c-line);
+  stroke-width: 1;
+}
+
+.ringValue {
+  font-size: 0.6875rem;
+  fill: var(--c-text-tertiary);
+  font-family: var(--font-body);
+}
+
+/* Axis label chips */
+.chip {
+  cursor: pointer;
+  outline: none;
+}
+
+.chipRect {
+  fill: var(--c-surface);
+  stroke: var(--c-line);
+  stroke-width: 1;
+  transition:
+    fill 0.12s ease,
+    stroke 0.12s ease;
+}
+
+.chipText {
+  font-size: 0.75rem;
+  font-weight: 700;
+  fill: var(--c-slate);
+  font-family: var(--font-body);
+}
+
+.chip:hover .chipRect {
+  fill: var(--c-amber-tint);
+  stroke: var(--c-slate);
+}
+
+.chip:focus-visible .chipRect {
+  stroke: var(--c-focus);
+  stroke-width: 2.5;
+}
+
+/* Interactive points on the current series */
+.point {
+  cursor: pointer;
+}
+
+.hit {
+  fill: transparent;
+}
+
+.dot {
+  fill: var(--c-amber);
+  stroke: var(--c-surface);
+  stroke-width: 1.5;
+  transition: r 0.12s ease;
+}
+
+.point:hover .dot {
+  r: 7;
+}
+
+/* Centre readout */
+.centerValue {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  fill: var(--c-ink);
+}
+
+.centerLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  fill: var(--c-text-tertiary);
+  font-family: var(--font-body);
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4) var(--space-5);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.swatchCurrent {
+  background-color: var(--c-amber);
+}
+
+.swatchBaseline {
+  height: 0;
+  width: 1.25rem;
+  border-radius: 0;
+  border-top: 2.5px solid var(--c-slate);
+}
+
+.swatchTarget {
+  background-color: var(--c-slate);
+  opacity: 0.28;
+}
+
+.swatchRed {
+  background-color: var(--c-flag);
+  opacity: 0.32;
+}
