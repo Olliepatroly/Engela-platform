@@ -245,6 +245,13 @@
 /* ── Responsive ───────────────────────────────────────────────────────── */
 
 @media (max-width: 56rem) {
+  /* Match the Sidebar's mobile breakpoint: it becomes a horizontal top bar, so
+     the shell must stack (row -> column) or the main column is pushed off to
+     the right and the page reads as blank below the nav. */
+  .shell {
+    flex-direction: column;
+  }
+
   .main {
     padding: var(--space-5);
   }
