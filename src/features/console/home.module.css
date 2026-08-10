@@ -1,0 +1,262 @@
+/* Clinical home — the landing surface for every clinical account. Reuses the
+   console chrome (navy nav rail from sidebar.module.css, cream canvas). */
+
+.shell {
+  display: flex;
+  min-height: 100dvh;
+  background-color: var(--c-cream);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  max-width: 64rem;
+  width: 100%;
+}
+
+/* ── Banner ───────────────────────────────────────────────────────────── */
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  line-height: var(--leading-h1);
+  color: var(--c-ink);
+}
+
+.subhead {
+  margin-top: var(--space-1);
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+/* ── Overview tiles ───────────────────────────────────────────────────── */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.tileLink {
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tileLink:hover {
+  border-color: var(--c-slate);
+}
+
+.tileLink:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+}
+
+/* Draw the eye to the flags tile only when something is actually waiting. */
+.tileAlert {
+  border-color: var(--c-flag);
+  background-color: var(--c-flag-bg);
+}
+
+.tileValue {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--c-ink);
+}
+
+.tileAlert .tileValue {
+  color: var(--c-flag);
+}
+
+.tileLabel {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.tileCaption {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+}
+
+/* ── Panels ───────────────────────────────────────────────────────────── */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.panelHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.panelTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--c-ink);
+}
+
+.panelLink,
+.radarFooterLink {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--c-slate);
+}
+
+.emptyNote {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+/* ── Flag preview rows ────────────────────────────────────────────────── */
+
+.flagList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.flagRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: 1px solid var(--c-line);
+  border-left-width: 3px;
+  border-radius: var(--radius-card);
+  background-color: var(--c-cream);
+}
+
+.flagRowMajor {
+  border-left-color: var(--c-flag);
+}
+
+.flagRowMinor {
+  border-left-color: var(--c-watch);
+}
+
+.flagTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.flagWho {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.flagMeta {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+}
+
+.flagSummary {
+  font-size: var(--text-small);
+  color: var(--c-text-action);
+}
+
+/* ── Team overview ────────────────────────────────────────────────────── */
+
+.teamGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: var(--space-5);
+}
+
+.teamGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.teamHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+}
+
+.teamCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background-color: var(--c-amber-tint);
+  color: var(--c-watch);
+  font-size: var(--text-label);
+  letter-spacing: 0;
+}
+
+.teamMembers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.teamMember {
+  font-size: var(--text-small);
+  color: var(--c-ink);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────── */
+
+.disclaimer {
+  font-size: var(--text-label);
+  color: var(--c-text-tertiary);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+
+@media (max-width: 56rem) {
+  /* Match the Sidebar's mobile breakpoint: it becomes a horizontal top bar, so
+     the shell must stack (row -> column) or the main column is pushed off to
+     the right and the page reads as blank below the nav. */
+  .shell {
+    flex-direction: column;
+  }
+
+  .main {
+    padding: var(--space-5);
+  }
+
+  .tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

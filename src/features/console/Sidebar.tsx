@@ -29,12 +29,12 @@ export function Sidebar({
   viewerName,
   selectedId,
   activeNav,
-  rosterBasePath = "/console",
+  rosterBasePath = "/console/review",
 }: {
   roster: RosterEntry[];
   viewerName: string;
   selectedId?: string;
-  activeNav: "review" | "programs" | "flags" | "search" | "invites" | "audit" | "account";
+  activeNav: "home" | "review" | "programs" | "flags" | "search" | "invites" | "audit" | "account";
   /** Where a roster click lands: the review (default) or the programmes page. */
   rosterBasePath?: string;
 }) {
@@ -92,6 +92,15 @@ export function Sidebar({
       <nav className={styles.nav} aria-label="Console">
         <Link
           href="/console"
+          className={`${styles.navLink} ${activeNav === "home" ? styles.navLinkActive : ""}`}
+        >
+          <span className={styles.navIcon} aria-hidden="true">
+            ⌂
+          </span>
+          {!effectiveCollapsed ? <span>Home</span> : null}
+        </Link>
+        <Link
+          href="/console/review"
           className={`${styles.navLink} ${activeNav === "review" ? styles.navLinkActive : ""}`}
         >
           <span className={styles.navIcon} aria-hidden="true">

@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { AddDataPanel, type MetricOption } from "./AddDataPanel";
 import { MetricTable } from "./MetricTable";
 import { ReportsPanel } from "./ReportsPanel";
+import { ScoreRadar } from "./ScoreRadar";
 import { SignOffPanel } from "./SignOffPanel";
 import type { ReviewVM, RosterEntry } from "./data";
 import styles from "./console.module.css";
@@ -120,6 +121,8 @@ export function ConsoleView({
                 </section>
               ))}
             </div>
+
+            <ScoreRadar pillars={review.pillars} composite={review.compositeScore} />
 
             {review.pillars.map((pillar) => (
               <section key={pillar.pillar} className={styles.pillarSection}>
