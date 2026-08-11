@@ -1,0 +1,259 @@
+.panel {
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-1);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--c-ink);
+}
+
+.note {
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+/* ── Account status chip (colour + dot + label, never colour alone) ──── */
+
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.statusActive {
+  color: var(--c-ontrack);
+  background-color: var(--c-ontrack-bg);
+}
+
+.statusPaused {
+  color: var(--c-watch);
+  background-color: var(--c-watch-surface);
+}
+
+.statusDischarged {
+  color: var(--c-text-secondary);
+  background-color: var(--c-blue-tint);
+}
+
+/* ── PAR-Q line ──────────────────────────────────────────────────────── */
+
+.parqDone,
+.parqPositive,
+.parqPending {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-small);
+  border-radius: var(--radius-roster);
+}
+
+.parqDot {
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.parqDone {
+  color: var(--c-ontrack);
+  background-color: var(--c-ontrack-bg);
+}
+
+.parqPositive {
+  color: var(--c-watch);
+  background-color: var(--c-watch-surface);
+}
+
+.parqPending {
+  color: var(--c-text-secondary);
+  background-color: var(--c-blue-tint);
+}
+
+/* ── Disclosure ──────────────────────────────────────────────────────── */
+
+.details {
+  border-top: 1px solid var(--c-line);
+  padding-top: var(--space-4);
+}
+
+.summary {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-slate);
+  cursor: pointer;
+}
+
+.summary:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-roster);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+@media (max-width: 72rem) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 56rem) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Forms (mirrors add-data.module.css) ─────────────────────────────── */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+.formTitle {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.formNote {
+  font-size: var(--text-label);
+  line-height: 1.5;
+  color: var(--c-text-secondary);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+}
+
+.input,
+.textarea,
+.file {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--c-ink);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+.input:focus-visible,
+.textarea:focus-visible,
+.file:focus-visible {
+  outline: none;
+  border-color: var(--c-focus);
+  box-shadow: 0 0 0 3px var(--c-blue-tint);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.statusLine {
+  font-size: var(--text-small);
+  color: var(--c-text-action);
+}
+
+.statusButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.error {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-flag);
+  background-color: var(--c-flag-bg);
+  border-radius: var(--radius-roster);
+}
+
+.success {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-ontrack);
+  background-color: var(--c-ontrack-bg);
+  border-radius: var(--radius-roster);
+}
+
+.submit {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-navy);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.secondary {
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-slate);
+  background-color: transparent;
+  border: 1px solid var(--c-slate);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.submit:disabled,
+.secondary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

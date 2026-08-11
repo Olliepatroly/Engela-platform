@@ -2,9 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
-import { isRole, isClinical } from "@/lib/roles";
+import { requireClinicalAccess } from "./access";
 import { statusFor, computeScores, type Target, type ScoredReading, type Pillar } from "./scoring";
 
 export type EntryState = { error: string | null; success: string | null };
@@ -46,29 +45,11 @@ const goalSchema = z
     message: "Enter the goal value (for a band, a lower and a higher one).",
   });
 
-/**
- * All clinician writes follow the same pattern: verify the session belongs to
- * a clinical role AND that RLS lets them see this client (care team with
- * consent), then perform the write with the service-role client and append an
- * audit_log entry. The session's own RLS read is the authorisation check.
+/*
+ * All clinician writes follow the same pattern: `requireClinicalAccess`
+ * verifies the session (clinical role + RLS-visible client), then the write
+ * runs with the service-role client and appends an audit_log entry.
  */
-async function requireClinicalAccess(clientId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const role = user?.app_metadata?.role;
-  if (!user || !isRole(role) || !isClinical(role)) return null;
-
-  const { data: client } = await supabase
-    .from("clients")
-    .select("id")
-    .eq("id", clientId)
-    .maybeSingle();
-  if (!client) return null;
-
-  return user;
-}
 
 type AdminClient = ReturnType<typeof getAdminClient>;
 

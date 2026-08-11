@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { getAdminClient } from "@/lib/supabase/admin";
 import type { PillStatus, TargetDef } from "@/components/ui";
 import type { Database } from "@/types/database.types";
 import { CLINICAL_ROLES, type Role } from "@/lib/roles";
@@ -96,6 +97,13 @@ export type ReviewVM = {
   issuedAt: string | null;
   signedByName: string | null;
   signedAt: string | null;
+  /** Who conducted the review and when, which is not who signs it off. */
+  conductedByName: string | null;
+  conductedAt: string | null;
+  /** 'console' when worked up here, 'uploaded' when conducted elsewhere. */
+  source: string;
+  /** Clinical-only narrative for a review conducted elsewhere. */
+  summary: string | null;
 };
 
 /** Minutes → "hh:mm" for the active_time metric. */
@@ -142,6 +150,10 @@ export type AuditEntryVM = {
 /** Human-readable labels for audit actions; unknown codes fall back to the raw code. */
 const AUDIT_ACTION_LABELS: Record<string, string> = {
   "weekly_review.signed_off": "Weekly review signed off",
+  "weekly_review.opened": "Weekly review opened",
+  "weekly_review.conducted": "Weekly review conducted",
+  "review_report.uploaded": "Clinical report filed",
+  "client.status_changed": "Account status changed",
   "metric_reading.recorded": "Reading recorded",
   "metric_reading.corrected": "Reading corrected",
   "safety_flag.raised": "Safety flag raised",
@@ -180,6 +192,10 @@ function auditDetail(meta: Record<string, unknown>): string {
   if (typeof meta.category === "string") parts.push(meta.category);
   if (typeof meta.email === "string") parts.push(meta.email);
   if (typeof meta.role === "string") parts.push(meta.role);
+  if (typeof meta.from === "string" && typeof meta.to === "string") {
+    parts.push(`${meta.from} to ${meta.to}`);
+  }
+  if (meta.report_attached === true) parts.push("report attached");
   if (meta.client_visible === true) parts.push("shared with client");
   return parts.join(" · ");
 }
@@ -279,9 +295,10 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
     .from("weekly_reviews")
     .select(
       `id, week_no, window_start, window_end, composite_score, status, context,
-       issued_at, signed_at,
+       issued_at, signed_at, conducted_at, source, summary,
        issued_by_profile:profiles!weekly_reviews_issued_by_fkey(full_name),
        signed_by_profile:profiles!weekly_reviews_signed_by_fkey(full_name),
+       conducted_by_profile:profiles!weekly_reviews_conducted_by_fkey(full_name),
        clients(id, mrn, diagnosis, treatment_phase, programme_week,
          profiles!clients_profile_id_fkey(full_name)),
        pillar_scores(pillar, score, baseline),
@@ -389,7 +406,152 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
     issuedAt: data.issued_at,
     signedByName: data.signed_by_profile?.full_name ?? null,
     signedAt: data.signed_at,
+    conductedByName: data.conducted_by_profile?.full_name ?? null,
+    conductedAt: data.conducted_at,
+    source: data.source,
+    summary: data.summary,
   };
+}
+
+/* ── Clients without a review yet ─────────────────────────────────────── */
+
+export type ClientSummaryVM = {
+  clientId: string;
+  fullName: string;
+  mrn: string;
+  diagnosis: string;
+  treatmentPhase: string | null;
+  programmeWeek: number | null;
+  /** active | paused | discharged. Drives the client app's own state. */
+  status: string;
+  /** The week a newly opened review should default to. */
+  suggestedWeekNo: number;
+  /** Whether this client has any weekly review at all. */
+  hasReview: boolean;
+  parqCompletedAt: string | null;
+  /** True when any PAR-Q answer was "yes", so the team follows up first. */
+  parqPositive: boolean | null;
+};
+
+/**
+ * The header and setup facts for one client, readable whether or not they have
+ * a weekly review yet. This is what lets the console show a newly invited
+ * client (and the controls to get them started) instead of a dead end. RLS
+ * scopes every read to the viewer's care team.
+ */
+export async function getClientSummary(clientId: string): Promise<ClientSummaryVM | null> {
+  const supabase = await createClient();
+
+  const [{ data: client }, { data: reviews }, { data: profile }] = await Promise.all([
+    supabase
+      .from("clients")
+      .select(
+        "id, mrn, diagnosis, treatment_phase, programme_week, status, profiles!clients_profile_id_fkey(full_name)",
+      )
+      .eq("id", clientId)
+      .maybeSingle(),
+    supabase
+      .from("weekly_reviews")
+      .select("week_no")
+      .eq("client_id", clientId)
+      .order("week_no", { ascending: false })
+      .limit(1),
+    supabase
+      .from("client_health_profiles")
+      .select("parq_completed_at, parq_positive")
+      .eq("client_id", clientId)
+      .maybeSingle(),
+  ]);
+
+  if (!client) return null;
+
+  const latestWeek = reviews?.[0]?.week_no ?? null;
+
+  return {
+    clientId: client.id,
+    fullName: client.profiles?.full_name ?? "Unknown",
+    mrn: client.mrn,
+    diagnosis: client.diagnosis,
+    treatmentPhase: client.treatment_phase,
+    programmeWeek: client.programme_week,
+    status: client.status,
+    suggestedWeekNo: latestWeek != null ? latestWeek + 1 : (client.programme_week ?? 1),
+    hasReview: latestWeek != null,
+    parqCompletedAt: profile?.parq_completed_at ?? null,
+    parqPositive: profile?.parq_positive ?? null,
+  };
+}
+
+/* ── Clinical reports ─────────────────────────────────────────────────── */
+
+export type ReportVM = {
+  id: string;
+  kind: string;
+  kindLabel: string;
+  title: string;
+  note: string | null;
+  fileName: string;
+  conductedOn: string | null;
+  /** The report's author: their profile name, else the name typed in. */
+  authorName: string | null;
+  uploadedByName: string;
+  createdAt: string;
+  weekNo: number | null;
+  /** Short-lived signed URL; null if the object has gone missing. */
+  url: string | null;
+};
+
+export const REPORT_KIND_LABELS: Record<string, string> = {
+  consultant_review: "Consultant review",
+  bloods: "Bloods",
+  dexa: "DEXA scan",
+  clinic_letter: "Clinic letter",
+  other: "Other document",
+};
+
+/**
+ * Clinical PDFs held for one client, newest first. RLS
+ * (review_reports_select_care_team) scopes the rows; signed URLs are minted
+ * with the service role for the rows the viewer was allowed to read, and
+ * expire in an hour. These documents are clinical-only and never reach the
+ * client app.
+ */
+export async function getClientReports(clientId: string): Promise<ReportVM[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("review_reports")
+    .select(
+      `id, kind, title, note, file_name, storage_path, conducted_on, conducted_by_name, created_at,
+       weekly_reviews(week_no),
+       author:profiles!review_reports_conducted_by_fkey(full_name),
+       uploader:profiles!review_reports_uploaded_by_fkey(full_name)`,
+    )
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false });
+  if (error || !data || data.length === 0) return [];
+
+  const admin = getAdminClient();
+  const reports: ReportVM[] = [];
+  for (const row of data) {
+    const { data: signed } = await admin.storage
+      .from("clinical-reports")
+      .createSignedUrl(row.storage_path, 60 * 60);
+    reports.push({
+      id: row.id,
+      kind: row.kind,
+      kindLabel: REPORT_KIND_LABELS[row.kind] ?? "Document",
+      title: row.title,
+      note: row.note,
+      fileName: row.file_name,
+      conductedOn: row.conducted_on,
+      authorName: row.author?.full_name ?? row.conducted_by_name,
+      uploadedByName: row.uploader?.full_name ?? "Clinical team",
+      createdAt: row.created_at,
+      weekNo: row.weekly_reviews?.week_no ?? null,
+      url: signed?.signedUrl ?? null,
+    });
+  }
+  return reports;
 }
 
 /* ── Clinical home overview ───────────────────────────────────────────── */

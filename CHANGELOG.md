@@ -2,6 +2,66 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-08-11 — Conducting a review: any clinical specialist can open one, or submit one done earlier
+
+**What:**
+- **The missing step.** Nothing in the product ever created a `weekly_reviews` row. A client
+  invited today got a `clients` row and nothing else, so the console showed "No review to show"
+  with no way forward, and every clinician write refused with "This client has no weekly review to
+  record against". That is why a CEP could add a session but no data would take. **`openReview`**
+  now opens (books) a week: it picks the next week number, sets the Monday to Sunday window, seeds
+  the clinical context strip from the client record, records the issuer, and keeps
+  `clients.programme_week` in step so the roster and the client app agree.
+- **Any clinical role may conduct a review.** Consultant, specialist nurse, CEP, physio and admin
+  can all open a week, record against it and file reports, because conducting a review is the
+  whole team's work. **Sign-off is unchanged**: still the consultant's (or admin's) act, still
+  audited, still what makes a week clinically final. Conducting and signing are now shown as two
+  separate lines in the sign-off panel.
+- **Reviews conducted elsewhere.** **`submitConductedReview`** records a review the team already
+  did, in clinic or on a call: the week, the date it was conducted, who conducted it, a clinical
+  summary, and optionally the consultant's PDF, which is filed against the week in one step. A
+  week that is already signed off is never rewritten; the reports form handles adding a document
+  to a signed week.
+- **Reports are real.** `ReportsPanel` was a deliberate stub that never let a file leave the
+  browser. It now uploads to a private `clinical-reports` bucket and lists what is on file with
+  type, week, author, who filed it and a signed link that expires after an hour. Uploads are
+  validated by declared MIME type **and** by the file's own `%PDF-` signature, so a renamed file
+  cannot enter the clinical document store, and a failed row insert removes the orphaned object.
+- **Activating an account.** `setClientStatus` activates, pauses or discharges a client from the
+  same panel, which is what turns a newly invited account into a live one. Status shows as colour
+  **plus** dot **plus** text label. The PAR-Q state (not done / done / done with a yes) sits at the
+  top of the panel, so whoever conducts the review sees the screening before they start.
+- **Audit.** Four new audited events: `weekly_review.opened`, `weekly_review.conducted`,
+  `review_report.uploaded`, `client.status_changed`, all with readable labels on the audit trail.
+- **Tests.** `review-window.test.ts` covers the Monday-to-Sunday window maths, including the
+  Sunday off-by-one and month/year/leap-day boundaries.
+
+**Why:** Oliver started trialling the platform with a real account and hit the wall immediately:
+no professional could book a review or activate the account, and after the client completed the
+PAR-Q the CEP could add a session but no data. The request was to give every clinical specialist
+the ability to conduct a review, or submit one conducted earlier by a colleague, such as a PDF
+report the consultant wrote up.
+
+**Safety notes:** `review_reports` carries raw labs and disease markers, so it has exactly one
+policy, care team SELECT, and no client policy at all (rule 2). The `clinical-reports` bucket is
+private with no `storage.objects` policies, so anon and authenticated are denied outright and the
+server mints short-lived signed URLs with the service role, the same pattern as `voice-notes`.
+`weekly_reviews.summary` is clinical-only: `client_home_payload` names its fields explicitly and
+does not read it. All writes stay server-only through audited actions.
+
+**Files:** `supabase/migrations/0021_review_conduct_and_reports.sql` (new),
+`src/features/console/review-actions.ts`, `access.ts`, `review-window.ts`,
+`review-window.test.ts`, `ReviewSetupPanel.tsx`, `review-setup.module.css` (all new),
+`src/features/console/ReportsPanel.tsx` + `reports.module.css` (rewritten),
+`src/features/console/ConsoleView.tsx`, `SignOffPanel.tsx`, `data.ts`, `entry-actions.ts`,
+`index.ts`, `console.module.css`, `src/app/console/review/page.tsx`,
+`src/types/database.types.ts`.
+
+**Migration:** `0021` is **written but not yet applied** to the live Supabase project. It adds
+`weekly_reviews.conducted_at / conducted_by / source / summary`, the `review_reports` table with
+its RLS policy, and the private `clinical-reports` bucket. Apply it before deploying, then
+re-run `pnpm db:types`. No new secrets or DNS.
+
 ## 2026-07-19 — Outcome radar (spider graph) on the weekly review and console home
 
 **What:**

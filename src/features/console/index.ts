@@ -4,13 +4,18 @@ export { Sidebar } from "./Sidebar";
 export {
   getRoster,
   getLatestReview,
+  getClientSummary,
+  getClientReports,
   getMetricOptions,
   getAuditTrail,
   getHomeOverview,
+  REPORT_KIND_LABELS,
 } from "./data";
 export type {
   RosterEntry,
   ReviewVM,
+  ClientSummaryVM,
+  ReportVM,
   AuditEntryVM,
   HomeOverviewVM,
   TeamGroupVM,

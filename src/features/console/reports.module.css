@@ -19,6 +19,7 @@
 }
 
 .dropzone {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -52,16 +53,188 @@
 }
 
 .caption {
-  margin-top: var(--space-2);
+  font-size: var(--text-label);
+  line-height: 1.5;
+  color: var(--c-text-tertiary);
+}
+
+/* ── Upload form ─────────────────────────────────────────────────────── */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+@media (max-width: 56rem) {
+  .fieldRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--c-ink);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--c-focus);
+  box-shadow: 0 0 0 3px var(--c-blue-tint);
+}
+
+/* The file input is visually hidden but still focusable, so the dropzone
+   label shows the focus ring on its behalf. */
+.dropzone:focus-within {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+}
+
+.error {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-flag);
+  background-color: var(--c-flag-bg);
+  border-radius: var(--radius-roster);
+}
+
+.success {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  color: var(--c-ontrack);
+  background-color: var(--c-ontrack-bg);
+  border-radius: var(--radius-roster);
+}
+
+.submit {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-navy);
+  background-color: var(--c-amber);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* ── Reports on file ─────────────────────────────────────────────────── */
+
+.listTitle {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--c-line);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+  margin-bottom: var(--space-2);
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.item {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-roster);
+}
+
+.itemHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.kindChip,
+.weekChip {
+  padding: 0.1rem var(--space-2);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+}
+
+.kindChip {
+  color: var(--c-slate);
+  background-color: var(--c-blue-tint);
+}
+
+.weekChip {
+  color: var(--c-watch);
+  background-color: var(--c-amber-tint);
+}
+
+.itemTitle {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.itemLink {
+  color: var(--c-slate);
+  text-decoration: underline;
+}
+
+.itemLink:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+}
+
+.itemMeta {
+  margin-top: var(--space-1);
   font-size: var(--text-label);
   color: var(--c-text-tertiary);
 }
 
-.pending {
+.itemNote {
+  margin-top: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--c-text-secondary);
+}
+
+.itemMissing {
   margin-top: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  font-size: var(--text-small);
-  color: var(--c-watch);
-  background-color: var(--c-watch-surface);
+  font-size: var(--text-label);
+  color: var(--c-flag);
+  background-color: var(--c-flag-bg);
   border-radius: var(--radius-roster);
 }

@@ -883,6 +883,86 @@ export type Database = {
           },
         ]
       }
+      review_reports: {
+        Row: {
+          client_id: string
+          conducted_by: string | null
+          conducted_by_name: string | null
+          conducted_on: string | null
+          created_at: string
+          file_name: string
+          file_size: number | null
+          id: string
+          kind: string
+          note: string | null
+          review_id: string | null
+          storage_path: string
+          title: string
+          uploaded_by: string
+        }
+        Insert: {
+          client_id: string
+          conducted_by?: string | null
+          conducted_by_name?: string | null
+          conducted_on?: string | null
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          id?: string
+          kind?: string
+          note?: string | null
+          review_id?: string | null
+          storage_path: string
+          title: string
+          uploaded_by: string
+        }
+        Update: {
+          client_id?: string
+          conducted_by?: string | null
+          conducted_by_name?: string | null
+          conducted_on?: string | null
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          kind?: string
+          note?: string | null
+          review_id?: string | null
+          storage_path?: string
+          title?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_reports_conducted_by_fkey"
+            columns: ["conducted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_reports_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_reports_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_exercises: {
         Row: {
           aimed_intensity: number | null
@@ -1021,6 +1101,8 @@ export type Database = {
         Row: {
           client_id: string
           composite_score: number | null
+          conducted_at: string | null
+          conducted_by: string | null
           context: Json
           created_at: string
           id: string
@@ -1028,7 +1110,9 @@ export type Database = {
           issued_by: string | null
           signed_at: string | null
           signed_by: string | null
+          source: string
           status: Database["public"]["Enums"]["metric_status"] | null
+          summary: string | null
           week_no: number
           window_end: string
           window_start: string
@@ -1036,6 +1120,8 @@ export type Database = {
         Insert: {
           client_id: string
           composite_score?: number | null
+          conducted_at?: string | null
+          conducted_by?: string | null
           context?: Json
           created_at?: string
           id?: string
@@ -1043,7 +1129,9 @@ export type Database = {
           issued_by?: string | null
           signed_at?: string | null
           signed_by?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["metric_status"] | null
+          summary?: string | null
           week_no: number
           window_end: string
           window_start: string
@@ -1051,6 +1139,8 @@ export type Database = {
         Update: {
           client_id?: string
           composite_score?: number | null
+          conducted_at?: string | null
+          conducted_by?: string | null
           context?: Json
           created_at?: string
           id?: string
@@ -1058,7 +1148,9 @@ export type Database = {
           issued_by?: string | null
           signed_at?: string | null
           signed_by?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["metric_status"] | null
+          summary?: string | null
           week_no?: number
           window_end?: string
           window_start?: string
@@ -1069,6 +1161,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_reviews_conducted_by_fkey"
+            columns: ["conducted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {

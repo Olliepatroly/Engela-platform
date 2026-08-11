@@ -19,6 +19,7 @@ export function SignOffPanel({
   weekNo,
   patientName,
   issuedText,
+  conductedText,
   signedText,
   isSigned,
   canSignOff,
@@ -28,6 +29,8 @@ export function SignOffPanel({
   weekNo: number;
   patientName: string;
   issuedText: string;
+  /** Who conducted the review, which is not who signs it off. Empty if unrecorded. */
+  conductedText: string;
   signedText: string;
   isSigned: boolean;
   canSignOff: boolean;
@@ -38,7 +41,7 @@ export function SignOffPanel({
     <section className={styles.signOff} aria-label="Sign-off">
       <h2 className={styles.actionsTitle}>Sign-off</h2>
       <p className={styles.signOffText}>
-        {issuedText} {signedText}
+        {[issuedText, conductedText, signedText].filter(Boolean).join(" ")}
       </p>
 
       {!isSigned && canSignOff ? (

@@ -332,6 +332,15 @@
   color: var(--c-text-secondary);
 }
 
+/* Narrative of a review conducted away from the console. Clinical-only. */
+.reviewSummary {
+  font-size: var(--text-small);
+  line-height: var(--leading-body);
+  color: var(--c-text-action);
+  white-space: pre-wrap;
+  margin-bottom: var(--space-2);
+}
+
 .signOffForm {
   display: flex;
   flex-direction: column;

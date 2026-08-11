@@ -3,9 +3,10 @@ import { Sidebar } from "./Sidebar";
 import { AddDataPanel, type MetricOption } from "./AddDataPanel";
 import { MetricTable } from "./MetricTable";
 import { ReportsPanel } from "./ReportsPanel";
+import { ReviewSetupPanel } from "./ReviewSetupPanel";
 import { ScoreRadar } from "./ScoreRadar";
 import { SignOffPanel } from "./SignOffPanel";
-import type { ReviewVM, RosterEntry } from "./data";
+import type { ClientSummaryVM, ReportVM, ReviewVM, RosterEntry } from "./data";
 import styles from "./console.module.css";
 
 function formatDateRange(start: string, end: string): string {
@@ -39,12 +40,17 @@ const CONTEXT_LABELS: Record<string, string> = {
 export function ConsoleView({
   roster,
   review,
+  client,
+  reports,
   viewerName,
   viewerCanSignOff,
   metricOptions,
 }: {
   roster: RosterEntry[];
   review: ReviewVM | null;
+  /** The selected client, readable whether or not a review exists yet. */
+  client: ClientSummaryVM | null;
+  reports: ReportVM[];
   viewerName: string;
   viewerCanSignOff: boolean;
   metricOptions: MetricOption[];
@@ -54,19 +60,47 @@ export function ConsoleView({
       <Sidebar
         roster={roster}
         viewerName={viewerName}
-        selectedId={review?.patient.clientId}
+        selectedId={client?.clientId ?? review?.patient.clientId}
         activeNav="review"
       />
 
       <main className={styles.main}>
         {review == null ? (
-          <div className={styles.empty}>
-            <h1 className={styles.emptyHeading}>No review to show</h1>
-            <p className={styles.emptyNote}>
-              Select a patient from the roster. If this patient is new, their first weekly review
-              will appear after the rehab lead issues it.
-            </p>
-          </div>
+          client == null ? (
+            <div className={styles.empty}>
+              <h1 className={styles.emptyHeading}>No patient selected</h1>
+              <p className={styles.emptyNote}>
+                Choose a patient from the roster. If the roster is empty, invite a client from the
+                Invitations screen, or ask a colleague to add you to a client&rsquo;s care team.
+              </p>
+            </div>
+          ) : (
+            <>
+              <header className={styles.banner}>
+                <div>
+                  <h1 className={styles.patientName}>{client.fullName}</h1>
+                  <p className={styles.patientMeta}>
+                    {client.mrn} · {client.diagnosis}
+                    {client.programmeWeek != null ? ` · Week ${client.programmeWeek}` : ""}
+                  </p>
+                </div>
+              </header>
+
+              <ReviewSetupPanel client={client} defaultOpen />
+
+              <ReportsPanel
+                clientId={client.clientId}
+                reviewId={null}
+                weekNo={null}
+                reports={reports}
+              />
+
+              <p className={styles.disclaimer}>
+                Rehabilitation monitoring tool. Supports the medical team; it does not replace
+                clinical care. Wearable-derived values are estimates, not lab measures.
+              </p>
+            </>
+          )
         ) : (
           <>
             <header className={styles.banner}>
@@ -158,9 +192,26 @@ export function ConsoleView({
               </ul>
             </section>
 
+            {review.summary ? (
+              <section className={styles.signOff} aria-label="Review summary">
+                <h2 className={styles.actionsTitle}>Review summary</h2>
+                <p className={styles.reviewSummary}>{review.summary}</p>
+                <p className={styles.signOffCaption}>
+                  Recorded from a review conducted away from the console. Clinical team only.
+                </p>
+              </section>
+            ) : null}
+
             <AddDataPanel clientId={review.patient.clientId} metricOptions={metricOptions} />
 
-            <ReportsPanel />
+            {client ? <ReviewSetupPanel client={client} defaultOpen={false} /> : null}
+
+            <ReportsPanel
+              clientId={review.patient.clientId}
+              reviewId={review.reviewId}
+              weekNo={review.weekNo}
+              reports={reports}
+            />
 
             <SignOffPanel
               clientId={review.patient.clientId}
@@ -171,6 +222,13 @@ export function ConsoleView({
                 review.issuedByName
                   ? `Issued by ${review.issuedByName} on ${formatDate(review.issuedAt)}.`
                   : "Not yet issued."
+              }
+              conductedText={
+                review.conductedAt
+                  ? `Conducted by ${review.conductedByName ?? "the clinical team"} on ${formatDate(
+                      review.conductedAt,
+                    )}.`
+                  : ""
               }
               signedText={
                 review.signedByName
