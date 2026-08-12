@@ -31,13 +31,45 @@ export const PILLAR_LABELS: Record<Pillar, string> = {
   immune: "Immune health",
 };
 
+/** Where a client's record sits: on the programme, on hold, or closed off. */
+export type ClientStatus = "active" | "paused" | "discharged";
+
+export function asClientStatus(value: string | null | undefined): ClientStatus {
+  return value === "paused" || value === "discharged" ? value : "active";
+}
+
 export type RosterEntry = {
   clientId: string;
   fullName: string;
   mrn: string;
   week: number | null;
   reviewStatus: MetricStatus | null;
+  recordStatus: ClientStatus;
 };
+
+export type ClientStatusVM = {
+  status: ClientStatus;
+  changedByName: string | null;
+  changedAt: string | null;
+};
+
+/** The record status of one client, with who last changed it and when. */
+export async function getClientStatus(clientId: string): Promise<ClientStatusVM | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("clients")
+    .select(
+      "status, status_changed_at, changed_by:profiles!clients_status_changed_by_fkey(full_name)",
+    )
+    .eq("id", clientId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    status: asClientStatus(data.status),
+    changedByName: data.changed_by?.full_name ?? null,
+    changedAt: data.status_changed_at,
+  };
+}
 
 export type MetricRowVM = {
   code: string;
@@ -90,6 +122,8 @@ export type ReviewVM = {
   compositeScore: number | null;
   status: MetricStatus | null;
   context: Record<string, string>;
+  /** The reviewer's narrative for the week, written when it was conducted. */
+  summary: string | null;
   pillars: PillarSectionVM[];
   actions: ActionVM[];
   issuedByName: string | null;
@@ -141,7 +175,15 @@ export type AuditEntryVM = {
 
 /** Human-readable labels for audit actions; unknown codes fall back to the raw code. */
 const AUDIT_ACTION_LABELS: Record<string, string> = {
+  "weekly_review.opened": "Review conducted",
+  "client_status.active": "Record activated",
+  "client_status.paused": "Record paused",
+  "client_status.discharged": "Record discharged",
   "weekly_review.signed_off": "Weekly review signed off",
+  "report.submitted": "Report submitted",
+  "report.sharing_granted": "Report sharing turned on",
+  "report.sharing_withdrawn": "Report sharing withdrawn",
+  "parq.completed": "Readiness screening completed",
   "metric_reading.recorded": "Reading recorded",
   "metric_reading.corrected": "Reading corrected",
   "safety_flag.raised": "Safety flag raised",
@@ -180,6 +222,12 @@ function auditDetail(meta: Record<string, unknown>): string {
   if (typeof meta.category === "string") parts.push(meta.category);
   if (typeof meta.email === "string") parts.push(meta.email);
   if (typeof meta.role === "string") parts.push(meta.role);
+  if (typeof meta.from === "string" && typeof meta.to === "string") {
+    parts.push(`${meta.from} to ${meta.to}`);
+  }
+  // The reason for a status change lives here, in the clinical-only trail,
+  // rather than on the client's own row.
+  if (typeof meta.note === "string" && meta.note) parts.push(meta.note);
   if (meta.client_visible === true) parts.push("shared with client");
   return parts.join(" · ");
 }
@@ -254,7 +302,7 @@ export async function getRoster(): Promise<RosterEntry[]> {
   const { data, error } = await supabase
     .from("clients")
     .select(
-      "id, mrn, programme_week, profiles!clients_profile_id_fkey(full_name), weekly_reviews(week_no, status)",
+      "id, mrn, programme_week, status, profiles!clients_profile_id_fkey(full_name), weekly_reviews(week_no, status)",
     )
     .order("mrn");
 
@@ -268,17 +316,97 @@ export async function getRoster(): Promise<RosterEntry[]> {
       mrn: row.mrn,
       week: latest?.week_no ?? row.programme_week,
       reviewStatus: latest?.status ?? null,
+      recordStatus: asClientStatus(row.status),
     };
   });
 }
 
-/** Latest weekly review for one patient, shaped for the console. */
-export async function getLatestReview(clientId: string): Promise<ReviewVM | null> {
+export type ReviewWeekVM = {
+  reviewId: string;
+  weekNo: number;
+  isSigned: boolean;
+};
+
+/** Every week on a patient's record, newest first, for the week picker. */
+export async function getReviewWeeks(clientId: string): Promise<ReviewWeekVM[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const { data } = await supabase
+    .from("weekly_reviews")
+    .select("id, week_no, signed_at")
+    .eq("client_id", clientId)
+    .order("week_no", { ascending: false });
+  return (data ?? []).map((row) => ({
+    reviewId: row.id,
+    weekNo: row.week_no,
+    isSigned: row.signed_at != null,
+  }));
+}
+
+export type ReviewDraftVM = {
+  /** The week the client's record is up to, plus one. */
+  weekNo: number;
+  /** Monday to Sunday of the current week, in ISO date form. */
+  windowStart: string;
+  windowEnd: string;
+  conductedOn: string;
+  /** False when this is the client's very first review. */
+  hasEarlierReview: boolean;
+};
+
+/** ISO date (UTC) `days` from `from`. */
+function addDays(from: Date, days: number): string {
+  const d = new Date(from);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Sensible starting values for conducting the next review: the week after the
+ * one the record is up to, over the Monday-to-Sunday week we are in. The
+ * clinician can change any of it, which is how a review conducted earlier is
+ * submitted with its real dates.
+ */
+export async function getReviewDraft(clientId: string): Promise<ReviewDraftVM> {
+  const supabase = await createClient();
+  const { data: client } = await supabase
+    .from("clients")
+    .select("programme_week")
+    .eq("id", clientId)
+    .maybeSingle();
+  const { data: latest } = await supabase
+    .from("weekly_reviews")
+    .select("week_no")
+    .eq("client_id", clientId)
+    .order("week_no", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const today = new Date();
+  // getUTCDay(): 0 is Sunday, so Monday sits six days back from a Sunday.
+  const mondayOffset = today.getUTCDay() === 0 ? -6 : 1 - today.getUTCDay();
+
+  return {
+    weekNo: latest ? latest.week_no + 1 : (client?.programme_week ?? 1),
+    windowStart: addDays(today, mondayOffset),
+    windowEnd: addDays(today, mondayOffset + 6),
+    conductedOn: today.toISOString().slice(0, 10),
+    hasEarlierReview: latest != null,
+  };
+}
+
+/**
+ * One weekly review shaped for the console: the requested week, or the latest
+ * on the record when no week is named.
+ */
+export async function getLatestReview(
+  clientId: string,
+  weekNo?: number,
+): Promise<ReviewVM | null> {
+  const supabase = await createClient();
+  const query = supabase
     .from("weekly_reviews")
     .select(
-      `id, week_no, window_start, window_end, composite_score, status, context,
+      `id, week_no, window_start, window_end, composite_score, status, context, summary,
        issued_at, signed_at,
        issued_by_profile:profiles!weekly_reviews_issued_by_fkey(full_name),
        signed_by_profile:profiles!weekly_reviews_signed_by_fkey(full_name),
@@ -289,10 +417,11 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
          metrics_catalog(code, pillar, name, unit, target_def, is_estimate, why_it_matters)),
        actions_flags(id, text, is_flag, severity, client_visible)`,
     )
-    .eq("client_id", clientId)
-    .order("week_no", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .eq("client_id", clientId);
+
+  const { data, error } = await (weekNo != null
+    ? query.eq("week_no", weekNo).maybeSingle()
+    : query.order("week_no", { ascending: false }).limit(1).maybeSingle());
 
   if (error || !data || !data.clients) return null;
 
@@ -383,6 +512,7 @@ export async function getLatestReview(clientId: string): Promise<ReviewVM | null
     compositeScore: data.composite_score,
     status: data.status,
     context: (data.context ?? {}) as Record<string, string>,
+    summary: data.summary,
     pillars,
     actions,
     issuedByName: data.issued_by_profile?.full_name ?? null,

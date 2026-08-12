@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { NameForm, PasswordForm, getAccountInfo } from "@/features/account";
+import { ClientReportsPanel, getOwnReports } from "@/features/reports";
 import { ClinicalDetailsCard, getOwnHealthProfile } from "@/features/screening";
 import styles from "@/features/account/account.module.css";
 
@@ -16,7 +17,7 @@ export default async function ClientAccountPage() {
   const account = await getAccountInfo();
   if (!account) redirect("/signin");
 
-  const profile = await getOwnHealthProfile();
+  const [profile, reports] = await Promise.all([getOwnHealthProfile(), getOwnReports()]);
 
   return (
     <>
@@ -36,6 +37,8 @@ export default async function ClientAccountPage() {
       </p>
 
       <ClinicalDetailsCard profile={profile} />
+
+      <ClientReportsPanel reports={reports} />
 
       <NameForm fullName={account.fullName} />
       <PasswordForm />

@@ -194,6 +194,11 @@ export function Sidebar({
                   <span className={styles.rosterMeta}>
                     {entry.mrn}
                     {entry.week != null ? ` · Week ${entry.week}` : ""}
+                    {/* A record off the programme says so in words, not by
+                        colour: the roster is where the team scans for it. */}
+                    {entry.recordStatus !== "active"
+                      ? ` · ${entry.recordStatus === "paused" ? "Paused" : "Discharged"}`
+                      : ""}
                   </span>
                   {entry.reviewStatus ? (
                     <StatusPill status={entry.reviewStatus} />

@@ -69,7 +69,10 @@ export function SignOffPanel({
       ) : null}
 
       {!isSigned && !canSignOff ? (
-        <p className={styles.signOffCaption}>The consultant signs off the weekly review.</p>
+        <p className={styles.signOffCaption}>
+          Any of the clinical team can conduct a review and record against it. The consultant signs
+          it off, which is the clinical act on the record.
+        </p>
       ) : null}
     </section>
   );
