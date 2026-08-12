@@ -35,8 +35,10 @@
 --     URLs are minted server-side with the service role only.
 -- ============================================================================
 
+-- Idempotent throughout: a parallel branch shipped its own 0021 adding some of
+-- the same objects, so this must apply cleanly whether or not that one ran.
 alter table public.weekly_reviews
-  add column summary text;
+  add column if not exists summary text;
 
 comment on column public.weekly_reviews.summary is
   'The reviewer''s narrative for the week, written when the review is conducted.';
@@ -45,7 +47,7 @@ comment on column public.weekly_reviews.issued_by is
 comment on column public.weekly_reviews.issued_at is
   'When the review was conducted, which may be earlier than when it was entered.';
 
-create table public.client_reports (
+create table if not exists public.client_reports (
   id            uuid primary key default gen_random_uuid(),
   client_id     uuid not null references public.clients (id) on delete cascade,
   -- Optional: the week the report belongs to. Kept on the record if that
@@ -71,13 +73,14 @@ create table public.client_reports (
 
 alter table public.client_reports enable row level security;
 
-create index client_reports_client_created_idx
+create index if not exists client_reports_client_created_idx
   on public.client_reports (client_id, created_at desc);
-create index client_reports_review_idx
+create index if not exists client_reports_review_idx
   on public.client_reports (review_id);
 
 -- The client reads reports shared with them (always including their own
 -- uploads); the consented care team reads reports shared with the team.
+drop policy if exists client_reports_select on public.client_reports;
 create policy client_reports_select on public.client_reports
   for select to authenticated
   using (
@@ -96,4 +99,9 @@ values (
   10485760, -- 10 MB, matching the server action's limit
   array['application/pdf', 'image/jpeg', 'image/png', 'image/heic']
 )
-on conflict (id) do nothing;
+-- Not "do nothing": if the bucket already exists from the parallel branch's
+-- migration it allows PDFs only, and storage would reject the photo of a test
+-- result a client is meant to be able to submit. Converge the settings.
+on conflict (id) do update
+  set file_size_limit    = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;

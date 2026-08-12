@@ -36,13 +36,24 @@ update public.clients
 set status = 'active'
 where status not in ('active', 'paused', 'discharged');
 
-alter table public.clients
-  add constraint clients_status_check
-    check (status in ('active', 'paused', 'discharged'));
+-- Guarded so the migration can be re-run safely (ADD CONSTRAINT has no
+-- IF NOT EXISTS form).
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.clients'::regclass
+      and conname = 'clients_status_check'
+  ) then
+    alter table public.clients
+      add constraint clients_status_check
+        check (status in ('active', 'paused', 'discharged'));
+  end if;
+end $$;
 
 alter table public.clients
-  add column status_changed_at timestamptz,
-  add column status_changed_by uuid references public.profiles (id);
+  add column if not exists status_changed_at timestamptz,
+  add column if not exists status_changed_by uuid references public.profiles (id);
 
 comment on column public.clients.status_changed_at is
   'When the status last changed. Null on records that have never moved off active.';
