@@ -2,6 +2,87 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-08-12 — Client record status: activate, pause, discharge
+
+**What:**
+- **Status switch on the console** (`ClientStatusPanel` on `/console/review`, `setClientStatus`).
+  `clients.status` has existed since 0001 with its three values in a comment, but nothing could ever
+  change it: every record sat on the 'active' default forever. Any clinical role on the client's
+  care team can now set it, and a reason is required for a pause or a discharge.
+- **The reason goes to the audit trail, not the client's row.** A client can read their own
+  `clients` row and RLS is row-level, so a note column there is a note the client can read. The
+  team's reasoning lives in the clinical-only `audit_log` instead; only who changed it and when sit
+  on the row (`status_changed_at`, `status_changed_by`), and the audit screen renders the reason.
+- **It drives real behaviour.** Pausing shows the client the protective banner the client home
+  already had wired to this field; discharging shows a new, warm "your programme is complete"
+  variant. The roster spells out "Paused" or "Discharged" in words next to the week.
+- **It is not an access control**, and the panel says so. A paused or discharged client keeps their
+  sign-in and their own data; UK GDPR gives them access to their record wherever they are on the
+  programme. Nothing about auth or RLS changed.
+
+**Why:** Oliver's follow-up during the trial run: professional team members need to be able to
+activate and deactivate accounts.
+
+**Files:** `supabase/migrations/0022_client_status.sql` (new),
+`src/features/console/{ClientStatusPanel.tsx,client-status.module.css}` (new),
+`src/features/console/{entry-actions.ts,data.ts,ConsoleView.tsx,Sidebar.tsx,index.ts}`,
+`src/features/client-home/ClientHomeView.tsx`, `src/app/console/review/page.tsx`,
+`src/types/database.types.ts`.
+
+**Migration:** `0022_client_status.sql` — normalises any stray status, adds the CHECK constraint the
+column never had, and adds `status_changed_at` / `status_changed_by`. Apply after 0021. No new RLS
+policy (writes stay server-only through the audited action), no secrets, no DNS.
+
+## 2026-08-11 — Conducting a review, and reports the team or the client submits
+
+**What:**
+- **Any clinical role can conduct a review.** New `openReview` server action + `ConductReviewPanel`
+  on `/console/review`: consultant, nurse, CEP, physio (and admin) on a client's care team can open
+  a week. Until now nothing could create a `weekly_reviews` row outside the seed, so a newly invited
+  client had no week for readings, actions, flags or reports to attach to — the CEP could add
+  sessions but every data entry answered "no weekly review to record against". Opening the first
+  week also starts the programme clock (`clients.programme_week`, `baseline_week`).
+- **Reviews conducted earlier can be submitted.** The panel carries "conducted on" plus the week
+  window, so a review a colleague ran off-system (a consultant's clinic review last Tuesday) is
+  entered with its real dates. `issued_by` / `issued_at` now mean *who conducted it and when*, and
+  `weekly_reviews.summary` holds the reviewer's narrative.
+- **Sign-off is unchanged.** The consultant (or admin) still signs off, still audited, still no
+  un-sign. The panel now says plainly that anyone conducts and the consultant signs.
+- **Reports and test results are real.** New `client_reports` table + private `clinical-reports`
+  bucket, replacing the non-functional upload stub. Anyone on the care team can submit a PDF or
+  photo (review report, bloods, imaging, DEXA, clinic letter, other test), optionally attached to a
+  week; clients can submit their own from `/app/account`. Files are uploaded and read back through
+  short-lived signed URLs minted server-side with the service role.
+- **Consent runs both ways, per report.** A clinical upload stays with the clinical team unless the
+  uploader explicitly shares it AND confirms it holds no raw lab values, disease markers or MRD
+  results (safety rule 2 — the client app never shows those); enforced server-side on both the
+  upload and the later share. A client's own upload is theirs: they choose whether their care team
+  sees it and can withdraw that at any time. Team access stays consent-gated via `is_on_care_team`.
+- **Multiple weeks are now navigable.** A week picker on the review banner (tick + screen-reader
+  wording for signed weeks, never colour alone), `getLatestReview(clientId, weekNo?)`, and readings
+  and actions attach to the week *on screen* rather than to whichever week is latest.
+
+**Why:** Oliver's first trial run: with a personal account there was no way for any professional to
+book or conduct a review or get a new client's record going, and after the client completed the
+PAR-Q the CEP could add sessions but no data. His instruction: anyone on the clinical team (CEP,
+nurse, consultant) can conduct or submit a review including a PDF the consultants produced, the
+consultant signs it off, anyone can submit reports and tests, and sharing is the client's own
+consent to give.
+
+**Files:** `supabase/migrations/0021_reviews_and_reports.sql` (new), `src/features/reports/*` (new
+feature: actions, data, constants, `ReportsPanel`, `ClientReportsPanel`, `ReportList`, styles),
+`src/features/console/{entry-actions.ts,data.ts,ConsoleView.tsx,ConductReviewPanel.tsx,
+conduct-review.module.css,AddDataPanel.tsx,SignOffPanel.tsx,console.module.css,index.ts}`,
+`src/app/console/review/page.tsx`, `src/app/app/account/page.tsx`, `src/types/database.types.ts`.
+Removed the stub `src/features/console/ReportsPanel.tsx` + `reports.module.css`.
+
+**Migration:** `0021_reviews_and_reports.sql` **must be applied before deploying** — the review
+query now selects `weekly_reviews.summary`, so the console review page returns nothing until it
+runs. It adds one nullable column, the `client_reports` table (RLS on, select-only policy, no write
+policies), and the private `clinical-reports` bucket (10 MB, PDF/JPEG/PNG/HEIC). No secrets or DNS
+changes. Regenerate `src/types/database.types.ts` with `pnpm db:types` once applied (the types in
+this change were written by hand to match).
+
 ## 2026-07-19 — Outcome radar (spider graph) on the weekly review and console home
 
 **What:**

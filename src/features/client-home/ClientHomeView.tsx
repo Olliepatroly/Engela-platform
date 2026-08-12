@@ -14,7 +14,9 @@ import styles from "./client-home.module.css";
  * metrics are handled per card in ClientMetrics.
  */
 export function ClientHomeView({ home }: { home: ClientHomeVM }) {
-  const paused = home.client.status?.toLowerCase() === "paused";
+  const status = home.client.status?.toLowerCase();
+  const paused = status === "paused";
+  const discharged = status === "discharged";
   const hasReview = home.review != null;
 
   const score = home.review?.composite_score ?? null;
@@ -30,6 +32,16 @@ export function ClientHomeView({ home }: { home: ClientHomeVM }) {
           <p className={styles.pausedNote}>
             This is a protective pause, not a step back. Rest is part of the programme. Your team
             will pick things back up with you when the time is right.
+          </p>
+        </section>
+      ) : null}
+
+      {discharged ? (
+        <section className={styles.pausedBanner} aria-label="Programme complete">
+          <h2 className={styles.pausedTitle}>Your programme is complete</h2>
+          <p className={styles.pausedNote}>
+            Thank you for the work you put in. Your record stays here for you to look back on. If
+            you would like to pick things up again, speak to your team and they will set it up.
           </p>
         </section>
       ) : null}

@@ -35,9 +35,14 @@ function Feedback({ state }: { state: EntryState }) {
  */
 export function AddDataPanel({
   clientId,
+  reviewId,
+  weekNo,
   metricOptions,
 }: {
   clientId: string;
+  /** The week on screen. Entries attach here, not to whichever week is latest. */
+  reviewId: string;
+  weekNo: number;
   metricOptions: MetricOption[];
 }) {
   const [metricState, metricAction, metricPending] = useActionState(recordMetric, initial);
@@ -51,14 +56,15 @@ export function AddDataPanel({
       <h2 className={styles.title}>Add data</h2>
       <p className={styles.note}>
         Record a reading after a session or a medical test, add an action for the team, or adjust
-        this client&rsquo;s goals. Every entry is written to the audit trail and the pillar and
-        composite scores recompute automatically.
+        this client&rsquo;s goals. Readings and actions attach to week {weekNo}. Every entry is
+        written to the audit trail and the pillar and composite scores recompute automatically.
       </p>
 
       <div className={styles.grid}>
         <form className={styles.form} action={metricAction}>
           <h3 className={styles.formTitle}>Record a reading</h3>
           <input type="hidden" name="clientId" value={clientId} />
+          <input type="hidden" name="reviewId" value={reviewId} />
           <label className={styles.field}>
             <span className={styles.label}>Metric</span>
             <select className={styles.input} name="metricCode" required defaultValue="">
@@ -106,6 +112,7 @@ export function AddDataPanel({
         <form className={styles.form} action={actionFormAction}>
           <h3 className={styles.formTitle}>Add an action</h3>
           <input type="hidden" name="clientId" value={clientId} />
+          <input type="hidden" name="reviewId" value={reviewId} />
           <label className={styles.field}>
             <span className={styles.label}>Action</span>
             <textarea

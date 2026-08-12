@@ -38,6 +38,68 @@
   color: var(--c-text-secondary);
 }
 
+/* Week picker — every week on the record, with a tick for signed-off weeks
+   (never colour alone: the tick carries a screen-reader label too). */
+.weekNav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.weekNavLabel {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-text-tertiary);
+}
+
+.weekLink {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--c-slate);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+}
+
+.weekLink[data-active="true"] {
+  color: var(--c-navy);
+  background-color: var(--c-amber-tint);
+  border-color: var(--c-amber);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Review notes — the reviewer's narrative for the week. */
+.summaryPanel {
+  padding: var(--space-6);
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+}
+
+.summaryText {
+  max-width: 72ch;
+  margin-top: var(--space-2);
+  font-size: var(--text-small);
+  line-height: 1.6;
+  color: var(--c-text-secondary);
+  white-space: pre-wrap;
+}
+
 /* Status strip — clinical context band (holds the disease marker). */
 .statusStrip {
   display: flex;

@@ -1,11 +1,14 @@
+import type { ReactNode } from "react";
+import Link from "next/link";
 import { StatusPill } from "@/components/ui";
 import { Sidebar } from "./Sidebar";
 import { AddDataPanel, type MetricOption } from "./AddDataPanel";
+import { ClientStatusPanel } from "./ClientStatusPanel";
+import { ConductReviewPanel } from "./ConductReviewPanel";
 import { MetricTable } from "./MetricTable";
-import { ReportsPanel } from "./ReportsPanel";
 import { ScoreRadar } from "./ScoreRadar";
 import { SignOffPanel } from "./SignOffPanel";
-import type { ReviewVM, RosterEntry } from "./data";
+import type { ClientStatusVM, ReviewDraftVM, ReviewVM, ReviewWeekVM, RosterEntry } from "./data";
 import styles from "./console.module.css";
 
 function formatDateRange(start: string, end: string): string {
@@ -39,34 +42,74 @@ const CONTEXT_LABELS: Record<string, string> = {
 export function ConsoleView({
   roster,
   review,
+  selectedClient,
+  draft,
+  clientStatus,
+  weeks,
   viewerName,
   viewerCanSignOff,
   metricOptions,
+  reportsSlot,
 }: {
   roster: RosterEntry[];
   review: ReviewVM | null;
+  /** The patient on screen, which exists even before their first review does. */
+  selectedClient: { clientId: string; fullName: string } | null;
+  /** Starting values for conducting the next review (null with no patient). */
+  draft: ReviewDraftVM | null;
+  /** Where the record sits: active, paused or discharged (null with no patient). */
+  clientStatus: ClientStatusVM | null;
+  weeks: ReviewWeekVM[];
   viewerName: string;
   viewerCanSignOff: boolean;
   metricOptions: MetricOption[];
+  /** Reports panel, composed by the page so features stay independent. */
+  reportsSlot?: ReactNode;
 }) {
   return (
     <div className={styles.shell}>
       <Sidebar
         roster={roster}
         viewerName={viewerName}
-        selectedId={review?.patient.clientId}
+        selectedId={review?.patient.clientId ?? selectedClient?.clientId}
         activeNav="review"
       />
 
       <main className={styles.main}>
         {review == null ? (
-          <div className={styles.empty}>
-            <h1 className={styles.emptyHeading}>No review to show</h1>
-            <p className={styles.emptyNote}>
-              Select a patient from the roster. If this patient is new, their first weekly review
-              will appear after the rehab lead issues it.
-            </p>
-          </div>
+          selectedClient && draft ? (
+            <>
+              <header className={styles.banner}>
+                <div>
+                  <h1 className={styles.patientName}>{selectedClient.fullName}</h1>
+                  <p className={styles.patientMeta}>No review on this record yet</p>
+                </div>
+              </header>
+              <ConductReviewPanel
+                clientId={selectedClient.clientId}
+                patientName={selectedClient.fullName}
+                draft={draft}
+              />
+              {reportsSlot}
+              {clientStatus ? (
+                <ClientStatusPanel
+                  clientId={selectedClient.clientId}
+                  patientName={selectedClient.fullName}
+                  status={clientStatus.status}
+                  changedByName={clientStatus.changedByName}
+                  changedAt={clientStatus.changedAt}
+                />
+              ) : null}
+            </>
+          ) : (
+            <div className={styles.empty}>
+              <h1 className={styles.emptyHeading}>No review to show</h1>
+              <p className={styles.emptyNote}>
+                Select a patient from the roster to see their week, or to conduct their first
+                review.
+              </p>
+            </div>
+          )
         ) : (
           <>
             <header className={styles.banner}>
@@ -80,6 +123,27 @@ export function ConsoleView({
               {review.status ? <StatusPill status={review.status} /> : null}
             </header>
 
+            {weeks.length > 1 ? (
+              <nav className={styles.weekNav} aria-label="Weeks on this record">
+                <span className={styles.weekNavLabel}>Weeks</span>
+                {weeks.map((week) => (
+                  <Link
+                    key={week.reviewId}
+                    className={styles.weekLink}
+                    href={`/console/review?patient=${review.patient.clientId}&week=${week.weekNo}`}
+                    aria-current={week.weekNo === review.weekNo ? "page" : undefined}
+                    data-active={week.weekNo === review.weekNo ? "true" : undefined}
+                  >
+                    {week.weekNo}
+                    {week.isSigned ? <span aria-hidden="true"> ✓</span> : null}
+                    <span className={styles.srOnly}>
+                      {week.isSigned ? " signed off" : " not yet signed off"}
+                    </span>
+                  </Link>
+                ))}
+              </nav>
+            ) : null}
+
             {/* Status strip: clinical context, CONSULTANT-ONLY (holds MRD). */}
             <section className={styles.statusStrip} aria-label="Clinical context">
               {Object.entries(CONTEXT_LABELS).map(([key, label]) =>
@@ -91,6 +155,13 @@ export function ConsoleView({
                 ) : null,
               )}
             </section>
+
+            {review.summary ? (
+              <section className={styles.summaryPanel} aria-label="Review notes">
+                <h2 className={styles.actionsTitle}>Review notes</h2>
+                <p className={styles.summaryText}>{review.summary}</p>
+              </section>
+            ) : null}
 
             <div className={styles.scoreRow}>
               <section className={styles.scoreCard} aria-label="Composite score">
@@ -158,9 +229,14 @@ export function ConsoleView({
               </ul>
             </section>
 
-            <AddDataPanel clientId={review.patient.clientId} metricOptions={metricOptions} />
+            <AddDataPanel
+              clientId={review.patient.clientId}
+              reviewId={review.reviewId}
+              weekNo={review.weekNo}
+              metricOptions={metricOptions}
+            />
 
-            <ReportsPanel />
+            {reportsSlot}
 
             <SignOffPanel
               clientId={review.patient.clientId}
@@ -180,6 +256,24 @@ export function ConsoleView({
               isSigned={review.signedAt != null}
               canSignOff={viewerCanSignOff}
             />
+
+            {draft ? (
+              <ConductReviewPanel
+                clientId={review.patient.clientId}
+                patientName={review.patient.fullName}
+                draft={draft}
+              />
+            ) : null}
+
+            {clientStatus ? (
+              <ClientStatusPanel
+                clientId={review.patient.clientId}
+                patientName={review.patient.fullName}
+                status={clientStatus.status}
+                changedByName={clientStatus.changedByName}
+                changedAt={clientStatus.changedAt}
+              />
+            ) : null}
 
             <p className={styles.disclaimer}>
               Rehabilitation monitoring tool. Supports the medical team; it does not replace

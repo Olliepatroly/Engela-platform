@@ -277,6 +277,82 @@ export type Database = {
           },
         ]
       }
+      client_reports: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          kind: string
+          mime_type: string
+          note: string | null
+          review_id: string | null
+          shared_with_team: boolean
+          size_bytes: number
+          storage_path: string
+          taken_on: string | null
+          title: string
+          uploaded_by: string
+          uploaded_role: string
+          visible_to_client: boolean
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          mime_type: string
+          note?: string | null
+          review_id?: string | null
+          shared_with_team?: boolean
+          size_bytes: number
+          storage_path: string
+          taken_on?: string | null
+          title: string
+          uploaded_by: string
+          uploaded_role: string
+          visible_to_client?: boolean
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          mime_type?: string
+          note?: string | null
+          review_id?: string | null
+          shared_with_team?: boolean
+          size_bytes?: number
+          storage_path?: string
+          taken_on?: string | null
+          title?: string
+          uploaded_by?: string
+          uploaded_role?: string
+          visible_to_client?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_reports_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_reports_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           baseline_week: number | null
@@ -290,6 +366,8 @@ export type Database = {
           programme_week: number | null
           rehab_lead_id: string | null
           status: string
+          status_changed_at: string | null
+          status_changed_by: string | null
           treatment_phase: string | null
         }
         Insert: {
@@ -304,6 +382,8 @@ export type Database = {
           programme_week?: number | null
           rehab_lead_id?: string | null
           status?: string
+          status_changed_at?: string | null
+          status_changed_by?: string | null
           treatment_phase?: string | null
         }
         Update: {
@@ -318,6 +398,8 @@ export type Database = {
           programme_week?: number | null
           rehab_lead_id?: string | null
           status?: string
+          status_changed_at?: string | null
+          status_changed_by?: string | null
           treatment_phase?: string | null
         }
         Relationships: [
@@ -332,6 +414,13 @@ export type Database = {
             foreignKeyName: "clients_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_status_changed_by_fkey"
+            columns: ["status_changed_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1029,6 +1118,7 @@ export type Database = {
           signed_at: string | null
           signed_by: string | null
           status: Database["public"]["Enums"]["metric_status"] | null
+          summary: string | null
           week_no: number
           window_end: string
           window_start: string
@@ -1044,6 +1134,7 @@ export type Database = {
           signed_at?: string | null
           signed_by?: string | null
           status?: Database["public"]["Enums"]["metric_status"] | null
+          summary?: string | null
           week_no: number
           window_end: string
           window_start: string
@@ -1059,6 +1150,7 @@ export type Database = {
           signed_at?: string | null
           signed_by?: string | null
           status?: Database["public"]["Enums"]["metric_status"] | null
+          summary?: string | null
           week_no?: number
           window_end?: string
           window_start?: string
