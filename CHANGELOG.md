@@ -2,6 +2,34 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-10-12 — Password reset from the sign-in screen
+
+**What:** A "Forgotten your password?" link on `/signin` leads to `/forgot-password`, which emails a
+single-use reset link to the account's **confirmed** address. The link opens `/reset-password`, where
+the person chooses a new password (10+ characters, typed twice). On success every session for the
+account is signed out and they land back on `/signin` with a confirmation.
+
+- Supabase issues the recovery token (`auth.admin.generateLink`, type `recovery`); we send it in our
+  own branded email through Resend, so the link points at `/reset-password`, not Supabase's hosted page.
+- Same answer whether or not the email has an account (no enumeration). Unconfirmed addresses get
+  nothing. One email per account per 60 seconds.
+- The token is verified only when the form is submitted, so an email scanner opening the link cannot
+  use it up. Verification runs on a session-less client, so the reset never signs the browser in.
+- Two-step verification is not bypassed: after a reset, clinicians still need their code to sign in.
+- Audited: `password_reset.requested` and `password_reset.completed`.
+- Shared email branding (`escapeHtml`, logo mark, fonts) lives in `src/lib/emailLayout.ts`, and
+  `sendEmail` gains an optional `html` body (plain text is still always sent).
+
+**Files:** `src/features/auth/{reset-actions,emailTemplates,ForgotPasswordForm,ResetPasswordForm}.ts(x)`
+(new), `src/features/auth/{schema,schema.test,SignInForm,index,signin-form.module.css}`,
+`src/app/{forgot-password,reset-password}/page.tsx` (new), `src/app/signin/page.tsx`,
+`src/lib/emailLayout.ts` (new), `src/lib/email.ts`.
+
+**Deployment implication:** needs `RESEND_API_KEY` on the deployed Worker (as for invites). Without
+it no email is sent; in local development the link is printed to the dev server output instead. Link
+lifetime follows the Supabase project's email OTP expiry (default one hour, which the copy states).
+No migration.
+
 ## 2026-08-12 — Client record status: activate, pause, discharge
 
 **What:**

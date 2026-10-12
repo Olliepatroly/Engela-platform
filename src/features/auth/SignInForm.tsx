@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { signIn, type SignInState } from "./actions";
 import { MfaChallengeForm } from "./MfaChallengeForm";
@@ -40,6 +41,10 @@ export function SignInForm() {
           placeholder="Your password"
         />
       </label>
+
+      <Link className={styles.forgot} href="/forgot-password">
+        Forgotten your password?
+      </Link>
 
       {state.error ? (
         <p className={styles.error} role="alert">
