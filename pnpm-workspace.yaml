@@ -21,21 +21,61 @@ minimumReleaseAgeExclude:
   - js-yaml@4.3.1
   - nanoid@3.3.16
   - nanoid@3.3.17
+  - glob@10.5.0
+  - qs@6.15.4
+  - qs@6.16.0
+  - vitest@4.1.11
+  - '@vitest/mocker@4.1.11'
+  - sharp@0.35.4
+  - js-yaml@4.3.2
+  - undici@7.29.1
+  - brace-expansion@1.1.21
+  - brace-expansion@2.1.7
+  - brace-expansion@5.0.12
+  - brace-expansion@1.1.20
+  - brace-expansion@2.1.6
+  - brace-expansion@5.0.11
+  - brace-expansion@1.1.19
+  - brace-expansion@2.1.5
+  - brace-expansion@5.0.10
+  - source-map-js@1.2.2
+  - proxy-addr@2.0.8
+  - sharp@0.35.5
 overrides:
-  brace-expansion@<1.1.16: ^1.1.16
-  brace-expansion@<1.1.17: ^1.1.17
-  brace-expansion@<1.1.18: ^1.1.18
-  brace-expansion@>=2.0.0 <2.1.2: ^2.1.2
-  brace-expansion@>=2.0.0 <2.1.3: ^2.1.3
-  brace-expansion@>=2.0.0 <2.1.4: ^2.1.4
-  brace-expansion@>=4.0.0 <5.0.8: ^5.0.8
-  brace-expansion@>=4.0.0 <5.0.9: ^5.0.9
+  '@vitest/mocker@>=2.1.0 <4.1.11': ^4.1.11
+  brace-expansion@<1.1.21: ^1.1.21
+  brace-expansion@>=2.0.0 <2.1.7: ^2.1.7
+  brace-expansion@>=4.0.0 <5.0.12: ^5.0.12
+  glob@>=10.2.0 <10.5.0: ^10.5.0
   js-yaml@>=4.0.0 <4.3.1: ^4.3.1
+  js-yaml@>=4.0.0 <4.3.2: ^4.3.2
   nanoid@<3.3.16: ^3.3.16
   nanoid@<3.3.17: ^3.3.17
   postcss@<8.5.10: ^8.5.10
   postcss@<=8.5.11: ^8.5.12
   postcss@<=8.5.17: ^8.5.18
   postcss@<=8.5.22: ^8.5.23
+  proxy-addr@>=1.1.0 <2.0.8: ^2.0.8
+  qs@>=2.2.5 <6.16.0: ^6.16.0
+  qs@>=6.14.2 <=6.15.3: ^6.15.4
   sharp@<0.35.0: ^0.35.0
+  sharp@<0.35.4: ^0.35.4
+  sharp@<0.35.5: ^0.35.5
+  source-map-js@>=1.0.0 <1.2.2: ^1.2.2
   undici@>=7.0.0 <7.29.0: ^7.29.0
+  undici@>=7.0.0 <7.29.1: ^7.29.1
+  undici@>=7.1.0 <7.29.1: ^7.29.1
+  undici@>=7.11.0 <7.29.1: ^7.29.1
+  undici@>=7.15.0 <7.29.1: ^7.29.1
+  undici@>=7.24.1 <7.29.1: ^7.29.1
+  undici@>=7.28.0 <7.29.1: ^7.29.1
+  vitest@>=2.1.0 <4.1.11: ^4.1.11
+
+# Advisories with no published fix, accepted until one ships. Review each time
+# the dependencies are bumped and remove the entry once a patched version exists.
+auditConfig:
+  ignoreGhsas:
+    # braces stack exhaustion. Fixed in 3.0.4, which is not on npm (latest is
+    # 3.0.3). Only reached through eslint-config-next > fast-glob > micromatch,
+    # i.e. lint tooling. Never bundled into the Worker.
+    - GHSA-vfj7-8cjw-p6xm

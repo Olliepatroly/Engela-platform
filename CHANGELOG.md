@@ -29,6 +29,29 @@ account is signed out and they land back on `/signin` with a confirmation.
 it no email is sent; in local development the link is printed to the dev server output instead. Link
 lifetime follows the Supabase project's email OTP expiry (default one hour, which the copy states).
 No migration.
+## 2026-10-12 — Dependency security fixes (audit back to green)
+
+**What:** `next` and `eslint-config-next` 15.5.23 to 15.5.27; `@opennextjs/cloudflare` 1.7 to
+1.20.10. `pnpm-workspace.yaml` overrides extended (via `pnpm audit --fix=override`) for patched
+transitive versions of `sharp`, `undici`, `proxy-addr`, `source-map-js`, `glob`, `js-yaml`, `qs`
+and `vitest`, and the overlapping `brace-expansion` overrides collapsed to one per major so the
+newest patch actually resolves.
+
+**Why:** CI's `pnpm audit --audit-level=high` had been failing on `main` since mid September:
+33 findings, including two critical Next.js remote code execution advisories (fixed in 15.5.24)
+and a critical `proxy-addr` IP spoofing advisory. Now 0 unignored.
+
+**Accepted exception:** `braces` GHSA-vfj7-8cjw-p6xm (high). The advisory names 3.0.4 as the fix but
+3.0.4 is not published (latest is 3.0.3). Only reached through lint tooling
+(`eslint-config-next` > `fast-glob` > `micromatch`), never bundled into the Worker. Listed under
+`auditConfig.ignoreGhsas` in `pnpm-workspace.yaml`; remove it once a fix ships.
+
+**Verified locally:** audit (high+) clean, typecheck, lint, tests, OpenNext Worker build, and
+`wrangler deploy --dry-run` (1.5 MB gzip).
+
+**Files:** `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`.
+
+**Deployment implication:** none beyond the new versions. No secrets, bindings or migrations.
 
 ## 2026-08-12 — Client record status: activate, pause, discharge
 
