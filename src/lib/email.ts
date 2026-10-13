@@ -19,7 +19,10 @@ export async function sendEmail({
   text: string;
   html?: string;
 }): Promise<boolean> {
-  if (!env.RESEND_API_KEY) return false;
+  if (!env.RESEND_API_KEY) {
+    console.warn("Email not sent: RESEND_API_KEY is not configured.");
+    return false;
+  }
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -35,8 +38,14 @@ export async function sendEmail({
         ...(html ? { html } : {}),
       }),
     });
+    if (!res.ok) {
+      // Status and Resend's error type only: never the recipient or content.
+      const body = (await res.json().catch(() => null)) as { name?: string } | null;
+      console.error(`Email not sent: Resend responded ${res.status} (${body?.name ?? "unknown"}).`);
+    }
     return res.ok;
   } catch {
+    console.error("Email not sent: could not reach Resend.");
     return false;
   }
 }
