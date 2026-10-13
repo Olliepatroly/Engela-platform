@@ -2,6 +2,24 @@
 
 Newest first. Every change records: what, why, files, and any migration/secret/DNS implication.
 
+## 2026-10-13 — Fix emails rejected by Resend (422) on the deployed app
+
+**What:** `src/lib/env.ts` now passes the build-time `NEXT_PUBLIC_` values into validation explicitly,
+and if validation still fails it checks field by field, so every other field keeps its default.
+`sendEmail` logs why a send failed (HTTP status and Resend's error type only, never the recipient or
+content). New `src/lib/env.test.ts`.
+
+**Why:** password reset emails failed in production with a 422 from Resend. The deploy passes
+`NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` to the build only; on the Worker they are not in
+`process.env` at runtime. Validating the whole runtime environment therefore always failed, and the
+old fallback returned the raw environment, dropping every default. `RESEND_FROM_EMAIL` became
+`undefined`, so mail went out `from: "Engela Health <undefined>"`. The same fault silenced the
+account-request notification (its approver address default was lost too).
+
+**Files:** `src/lib/env.ts`, `src/lib/email.ts`, `src/lib/env.test.ts` (new).
+
+**Deployment implication:** none. `RESEND_API_KEY` must still be a Worker secret (see docs/SETUP.md).
+
 ## 2026-10-12 — Password reset from the sign-in screen
 
 **What:** A "Forgotten your password?" link on `/signin` leads to `/forgot-password`, which emails a
